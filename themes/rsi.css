@@ -1,0 +1,519 @@
+/* ============================================================================
+   THEME: RSI  v6.2 — RELEASE
+   Base: v6.1 + Final Review
+   Fixes ggü. v6.1:
+   - microGlitch entfernt (Dauer-Repaint auf .screen, unnötig neben dem Spiel)
+   - ENG-Ausnahme greift nur noch fuer rsiPulse, NICHT fuer rsiWarn (sonst kann
+     ENG im kritischen Zustand nicht warnen)
+   - heatLine + row:hover Shadow-Konflikt aufgeloest (hover gewinnt sauber)
+   - .led transition:all -> gezielt (background, box-shadow)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700&family=Share+Tech+Mono&display=swap');
+
+/* ════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ════════════════════════════════════════════════════════ */
+:root {
+  --acc:      #7ed4ff;
+  --acc-hi:   #aaeaff;
+  --acc-glo:  rgba(126,212,255,.5);
+  --acc-glo2: rgba(126,212,255,.2);
+
+  --line:     rgba(126,212,255,.22);
+  --line-hi:  rgba(126,212,255,.40);
+  --line-glo: rgba(98,200,255,.22);
+
+  --txt:      #cde8f8;
+  --txt-lbl:  rgba(165,215,240,.6);
+  --txt-off:  rgba(85,145,185,.22);
+
+  --col-act:  #7ed4ff;
+  --col-crit: #ff5252;
+  --col-ok:   #73ffb3;
+
+  --amber:    var(--col-act);
+  --amber-hi: var(--acc-hi);
+  --red:      var(--col-crit);
+  --dim:      var(--txt-off);
+  --lbl:      var(--txt);
+  --mute:     var(--txt-lbl);
+}
+
+/* ════════════════════════════════════════════════════════
+   BASE
+   ════════════════════════════════════════════════════════ */
+* { margin:0; padding:0; box-sizing:border-box }
+html, body { height:100%; overflow:hidden }
+
+body {
+  font-family:'Rajdhani',sans-serif;
+  color:var(--txt);
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:24px;
+  -webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 35%, #0e2244 0%, #071528 45%, #030912 100%);
+}
+
+/* Scanlines — einmal, global */
+body::before {
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,.018) 0, rgba(255,255,255,.018) 1px,
+    transparent 1px, transparent 4px
+  );
+  opacity:.18; mix-blend-mode:overlay;
+}
+
+/* ════════════════════════════════════════════════════════
+   CONSOLE
+   ════════════════════════════════════════════════════════ */
+.console {
+  position:relative;
+  width:min(1240px,100%); aspect-ratio:16/10;
+  padding:0; display:flex; flex-direction:column; overflow:hidden;
+
+  background: rgba(8,18,32,.22);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  border:1px solid rgba(120,220,255,.24);
+
+  clip-path: polygon(
+    14px 0,   calc(100% - 14px) 0,
+    100% 14px, 100% calc(100% - 14px),
+    calc(100% - 14px) 100%, 14px 100%,
+    0 calc(100% - 14px), 0 14px
+  );
+
+  transform: none;
+
+  filter:
+    drop-shadow(0 45px 110px rgba(0,0,0,.70))
+    drop-shadow(0   0   18px rgba(0,180,255,.10));
+
+  animation: rsiBoot 1.5s ease-out;
+}
+
+.console::before {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  border:1px solid rgba(120,220,255,.38);
+  box-shadow:
+    inset 0 0 14px rgba(80,220,255,.10),
+    inset 0 0 45px rgba(15,50,120,.14),
+    inset 0 0 100px rgba(8,28,70,.08);
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%,   rgba(20,65,150,.18), transparent 60%),
+    radial-gradient(ellipse 60% 35% at 50% 100%, rgba(10,35,90,.12),  transparent 70%);
+}
+
+.console::after {
+  content:""; position:absolute; top:-100%; left:0; width:100%; height:300%;
+  pointer-events:none; z-index:3;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(126,212,255,.03) 47%, rgba(126,212,255,.05) 50%, rgba(126,212,255,.03) 53%,
+    transparent 100%
+  );
+  animation: rsiSweep 10s linear infinite;
+}
+
+/* ════ ECKMARKEN ════ */
+.mount {
+  position:absolute; width:16px; height:16px; z-index:8;
+  background:transparent; border:0 solid rgba(126,212,255,.7);
+}
+.mount.tl { top:14px;    left:14px;   border-top-width:2px;    border-left-width:2px   }
+.mount.tr { top:14px;    right:14px;  border-top-width:2px;    border-right-width:2px  }
+.mount.bl { bottom:14px; left:14px;   border-bottom-width:2px; border-left-width:2px   }
+.mount.br { bottom:14px; right:14px;  border-bottom-width:2px; border-right-width:2px  }
+
+/* ════ VERSTECKTE ELEMENTE ════ */
+.tx, .tx.pol { display:none }
+.hazard      { display:none }
+.vent        { display:none }
+.keys        { display:none }
+.screen::before { display:none }
+.strip { background:transparent; box-shadow:none; border-radius:0 }
+
+/* ════════════════════════════════════════════════════════
+   KOPF
+   ════════════════════════════════════════════════════════ */
+.topstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; padding:14px 28px 12px;
+  position:relative; z-index:4;
+}
+.topstrip::after {
+  content:""; position:absolute; bottom:0; left:0; right:0; height:1px;
+  background:var(--line-hi);
+  box-shadow:0 0 12px var(--line-glo), 0 0 5px var(--line-glo);
+}
+
+.brand { order:1; text-align:left; justify-self:start }
+.brand .w1 {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(20px,2.6vw,34px); letter-spacing:.38em; text-transform:uppercase;
+  color:rgba(126,212,255,.09); line-height:1;
+}
+.brand .w2 {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.66vw,8px); letter-spacing:4px;
+  color:rgba(126,212,255,.05); margin-top:3px;
+}
+
+.embed-nav { order:2; display:flex; gap:14px; justify-self:center }
+.embed-btn {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(7px,.78vw,9px); letter-spacing:2.5px;
+  color:rgba(126,212,255,.28); background:transparent; border:none;
+  border-bottom:1px solid transparent; padding:3px 0; cursor:pointer;
+  display:flex; align-items:center; gap:6px; user-select:none;
+  transition:color .15s, border-color .15s, text-shadow .15s;
+}
+.embed-btn:hover {
+  color:var(--acc);
+  border-bottom-color:rgba(126,212,255,.4);
+  text-shadow:0 0 8px var(--acc-glo2);
+}
+.embed-btn .ar { opacity:.4 }
+
+.ident { order:3; background:transparent; border:none; padding:0; text-align:right; justify-self:end }
+.ident .a {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(9px,1.15vw,13px); letter-spacing:.2em; text-transform:uppercase;
+  color:rgba(126,212,255,.45);
+}
+.ident .b {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.68vw,8px); letter-spacing:3px;
+  color:rgba(126,212,255,.18); margin-top:2px;
+}
+
+/* ════════════════════════════════════════════════════════
+   KERN
+   ════════════════════════════════════════════════════════ */
+.core {
+  position:relative; z-index:3; flex:1; min-height:0;
+  display:grid; grid-template-columns:1fr;
+  background:transparent; border:none; padding:0; box-shadow:none;
+}
+
+/* ════════════════════════════════════════════════════════
+   MODULE
+   ════════════════════════════════════════════════════════ */
+.module { position:relative; background:transparent; border:none; padding:0; border-radius:0 }
+
+.module::before {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background: radial-gradient(circle at 50% 20%, rgba(126,212,255,.08), transparent 60%);
+}
+
+.module::after {
+  content:""; position:absolute; inset:-4px; pointer-events:none; z-index:0;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.55),
+    0  0   17px rgba(80,220,255,.08);
+}
+
+/* ════════════════════════════════════════════════════════
+   SCREEN — HUD GLASS
+   ════════════════════════════════════════════════════════ */
+.screen {
+  position:relative; height:100%; border-radius:0; overflow:hidden;
+  display:flex; flex-direction:column;
+  padding:clamp(18px,2.4vw,32px) clamp(28px,3.8vw,52px) clamp(12px,1.6vw,20px);
+
+  background:
+    linear-gradient(180deg, rgba(18,38,65,.22), rgba(6,14,26,.16));
+
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  border:1px solid rgba(126,212,255,.10);
+  box-shadow: inset 0 0 18px rgba(80,220,255,.06);
+
+  /* Nur seltener Flacker — kein Dauer-Glitch (schont GPU neben dem Spiel) */
+  animation: rsiFlicker 14s ease-in-out infinite;
+}
+
+.scode {
+  position:absolute; right:28px; bottom:10px; z-index:7;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(126,212,255,.1);
+}
+
+/* ════════════════════════════════════════════════════════
+   STATUS-GRID
+   ════════════════════════════════════════════════════════ */
+.grid {
+  position:relative; z-index:4; flex:1;
+  display:grid; grid-template-columns:1fr 1fr;
+  column-gap:clamp(40px,6vw,80px); min-height:0;
+}
+.col   { display:flex; flex-direction:column; min-height:0; position:relative }
+.col.r { padding-left:0; border-left:none }
+
+.col.r::before {
+  content:""; position:absolute; top:0; bottom:0;
+  width:1px; left:calc(-1 * clamp(20px,3vw,40px));
+  background:linear-gradient(to bottom,
+    transparent 5%, rgba(126,212,255,.32) 20%,
+    rgba(126,212,255,.32) 80%, transparent 95%);
+  box-shadow:0 0 8px var(--line-glo), 0 0 3px rgba(126,212,255,.4);
+  pointer-events:none; z-index:2;
+}
+
+/* ════ SECTION HEADERS ════ */
+.ghead {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(7px,.76vw,9px); letter-spacing:.3em;
+  color:rgba(126,212,255,.72);
+  text-shadow:
+    0 0 3px  rgba(126,212,255,.5),
+    0 0 8px  rgba(126,212,255,.45),
+    0 0 20px rgba(126,212,255,.28),
+    0 0 40px rgba(126,212,255,.12);
+  padding:0 0 6px; margin-bottom:8px;
+  position:relative; z-index:2;
+}
+.ghead::after {
+  content:""; position:absolute; bottom:0; left:0; right:0; height:1px;
+  background:var(--col-act);
+  box-shadow:
+    0 0 3px  rgba(126,212,255,1.0),
+    0 0 8px  rgba(126,212,255,.9),
+    0 0 20px rgba(126,212,255,.55),
+    0 0 40px rgba(126,212,255,.25);
+}
+.ghead:not(:first-child) { margin-top:clamp(12px,1.8vw,22px) }
+
+/* ════ ZEILEN ════ */
+.rows { display:flex; flex-direction:column; justify-content:space-evenly; flex:1; min-height:0 }
+
+.row {
+  display:flex; align-items:baseline; justify-content:space-between;
+  padding:clamp(3px,.45vw,6px) 0;
+  background:transparent;
+  border-bottom:1px solid rgba(126,212,255,.10);
+  transition: transform .2s ease, box-shadow .15s ease;
+}
+.row:last-child { border-bottom:none }
+
+/* Kritische Zeilen: heatLine */
+.row:has(.st.red) {
+  animation: heatLine 1.6s ease-in-out infinite;
+}
+
+/* Hover gewinnt — ueberschreibt heatLine-Shadow sauber, kein Springen */
+.row:hover {
+  transform: translateX(2px);
+  box-shadow: inset 2px 0 0 rgba(126,212,255,.5), inset 4px 0 10px rgba(98,200,255,.06);
+  animation: none;
+}
+
+.lhs { display:flex; align-items:center; gap:7px }
+
+/* ════ LEDs ════ */
+.led {
+  width:4px; height:4px; border-radius:50%; flex:none;
+  background:rgba(126,212,255,.1);
+  transition: background .25s, box-shadow .25s;
+}
+.led.on  { background:var(--col-crit); box-shadow:0 0 6px rgba(255,82,82,.8),   0 0 12px rgba(255,82,82,.35)  }
+.led.lit { background:var(--col-act);  box-shadow:0 0 5px rgba(126,212,255,.75), 0 0 10px rgba(126,212,255,.3) }
+
+/* ════════════════════════════════════════════════════════
+   VISUELLE HIERARCHIE
+   ════════════════════════════════════════════════════════ */
+.lbl {
+  font-family:'Rajdhani',sans-serif;
+  font-weight:600; font-size:clamp(14px,1.8vw,23px);
+  letter-spacing:.07em; color:var(--txt-lbl);
+}
+
+.st {
+  font-family:'Rajdhani',sans-serif;
+  font-weight:500; font-size:clamp(13px,1.6vw,20px);
+  letter-spacing:.12em; text-align:right;
+  color:var(--txt-off);
+  transition:color .25s, text-shadow .25s;
+}
+
+.st.amber {
+  color:var(--col-act); font-weight:700;
+  text-shadow:
+    0 0 10px rgba(126,212,255,.8),
+    0 0 26px rgba(126,212,255,.4),
+    0 0 48px rgba(126,212,255,.15);
+  animation:rsiPulse 3s ease-in-out infinite;
+}
+
+/* ENG: nur das ruhige Atmen (rsiPulse) unterdruecken — NICHT die Warnung.
+   So bleibt rsiWarn aktiv falls ENG je in den kritischen Zustand geht. */
+[data-sys="eng"] .st.amber { animation:none }
+
+.st.red {
+  color:var(--col-crit); font-weight:700;
+  text-shadow:
+    0 0 10px rgba(255,82,82,.75),
+    0 0 24px rgba(255,82,82,.35);
+  animation:rsiWarn 1.4s ease-in-out infinite;
+}
+
+.st.dim { color:var(--txt-off); font-weight:500; text-shadow:none; animation:none }
+
+.row:has(.st.dim)   .lbl { color:rgba(165,215,240,.35) }
+.row:has(.st.amber) .lbl { color:rgba(180,225,250,.72)  }
+.row:has(.st.red)   .lbl { color:rgba(255,180,180,.6)   }
+
+/* ════════════════════════════════════════════════════════
+   STATUS-LEISTE
+   ════════════════════════════════════════════════════════ */
+.statusbar {
+  position:relative; z-index:5; display:flex; align-items:center;
+  margin-top:clamp(12px,1.8vw,22px); background:transparent; padding:0;
+}
+.statusbar::before, .statusbar::after {
+  content:""; flex:1; height:1px;
+  background:var(--col-act);
+  box-shadow:
+    0 0 3px  rgba(126,212,255,1.0),
+    0 0 8px  rgba(126,212,255,.9),
+    0 0 20px rgba(126,212,255,.55),
+    0 0 40px rgba(126,212,255,.25);
+}
+.nav { display:none }
+.stitle {
+  padding:0 18px; flex:none;
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(8px,.88vw,11px); letter-spacing:.5em; text-transform:uppercase;
+  color:rgba(126,212,255,.72);
+  text-shadow:
+    0 0 3px  rgba(126,212,255,.5),
+    0 0 8px  rgba(126,212,255,.45),
+    0 0 20px rgba(126,212,255,.28),
+    0 0 40px rgba(126,212,255,.12);
+  white-space:nowrap;
+}
+
+/* ════════════════════════════════════════════════════════
+   FUSS
+   ════════════════════════════════════════════════════════ */
+.botstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:16px; padding:10px 28px 13px;
+  position:relative; z-index:4;
+}
+.botstrip::before {
+  content:""; position:absolute; top:0; left:0; right:0; height:1px;
+  background:var(--line-hi);
+  box-shadow:0 0 12px var(--line-glo), 0 0 5px var(--line-glo);
+}
+.servicelog {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.72vw,8px); letter-spacing:1.5px; line-height:1.7;
+  color:rgba(126,212,255,.17);
+}
+.servicelog .id { color:rgba(126,212,255,.32); font-weight:bold }
+.servicelog b   { color:rgba(126,212,255,.22) }
+.servicelog .r  { color:rgba(115,255,179,.28) }
+.codes {
+  justify-self:center; display:flex; gap:14px;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(126,212,255,.13);
+}
+.bright { justify-self:end; display:flex; align-items:center; gap:14px }
+.cstat {
+  display:flex; align-items:center; gap:7px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(7px,.82vw,9px); letter-spacing:1px; color:rgba(126,212,255,.32);
+}
+.cled      { width:5px; height:5px; border-radius:50%; background:rgba(126,212,255,.15) }
+.cled.live { background:var(--col-ok); box-shadow:0 0 7px rgba(115,255,179,.7), 0 0 14px rgba(115,255,179,.3) }
+.cled.off  { background:rgba(255,82,82,.4); box-shadow:0 0 6px rgba(255,82,82,.35) }
+.pages { display:flex; gap:6px }
+.pg    { width:4px; height:4px; border-radius:50%; background:rgba(126,212,255,.1) }
+.pg.on { background:rgba(126,212,255,.48); box-shadow:0 0 5px rgba(126,212,255,.4) }
+
+/* ════════════════════════════════════════════════════════
+   ANIMATIONEN — nur GPU-freundliche Properties auf kleinen Elementen
+   ════════════════════════════════════════════════════════ */
+
+@keyframes rsiPulse {
+  0%, 100% { opacity:.82; filter:brightness(1.0)  }
+  50%      { opacity:1;   filter:brightness(1.18) }
+}
+
+@keyframes rsiWarn {
+  0%, 100% { opacity:.78; filter:brightness(1.0)  }
+  50%      { opacity:1;   filter:brightness(1.28) }
+}
+
+@keyframes heatLine {
+  0%, 100% { box-shadow: inset 0 0 0 rgba(255,80,80,0)    }
+  50%      { box-shadow: inset 2px 0 0 rgba(255,80,80,.3) }
+}
+
+@keyframes rsiFlicker {
+  0%, 95% { opacity:1   }
+  96%     { opacity:.93 }
+  97%     { opacity:1   }
+  98%     { opacity:.96 }
+  100%    { opacity:1   }
+}
+
+@keyframes rsiSweep {
+  0%   { transform:translateY(-33%) }
+  100% { transform:translateY(33%)  }
+}
+
+@keyframes rsiBoot {
+  0%   { opacity:0;
+         filter:brightness(3) blur(6px) drop-shadow(0 0 40px rgba(0,200,255,.9)) }
+  55%  { opacity:1;
+         filter:brightness(1.1) blur(0)
+                drop-shadow(0 45px 110px rgba(0,0,0,.70))
+                drop-shadow(0   0   18px rgba(0,180,255,.10)) }
+  100% { opacity:1;
+         filter:drop-shadow(0 45px 110px rgba(0,0,0,.70))
+                drop-shadow(0   0   18px rgba(0,180,255,.10)) }
+}
+
+/* ════════════════════════════════════════════════════════
+   REDUCED MOTION — Barrierefreiheit
+   Wer "weniger Bewegung" im System aktiviert hat, kriegt ein ruhiges Panel.
+   ════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .console, .screen, .st.amber, .st.red, .row:has(.st.red), .console::after {
+    animation: none !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════════════════════ */
+@media (max-width:900px){
+  .console { aspect-ratio:auto; min-height:calc(100vh - 32px) }
+  .lbl { font-size:clamp(14px,3.2vw,21px) }
+  .st  { font-size:clamp(12px,2.1vw,17px) }
+}
+@media (max-aspect-ratio:1/1){
+  .grid { grid-template-columns:1fr }
+  .col.r::before { display:none }
+  .col.r { padding-top:10px; margin-top:14px }
+  .col.r::after {
+    content:""; position:absolute; top:0; left:0; right:0; height:1px;
+    background:var(--col-act);
+    box-shadow:0 0 3px rgba(126,212,255,1), 0 0 8px rgba(126,212,255,.9), 0 0 20px rgba(126,212,255,.55);
+  }
+  .ident .b, .brand .w2 { display:none }
+}
+@media (max-width:520px){
+  .topstrip { grid-template-columns:auto 1fr; padding:10px 14px 9px }
+  .embed-nav { display:none }
+  .stitle { letter-spacing:.2em }
+  .screen { padding:14px 16px 10px }
+  .grid { column-gap:24px }
+}

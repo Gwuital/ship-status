@@ -1,0 +1,205 @@
+/* ============================================================================
+   THEME: DRAKE  ("Interplanetary" Wartungs-Cockpit)
+   Look-Layer fuer ship-status. HTML-Skelett + JS sind hersteller-neutral.
+   Fan-made / inoffiziell - keine Verbindung zu Cloud Imperium Games.
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Michroma&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap');
+
+:root{
+  /* Drake-Material: dunkles, leicht gruenliches Aluminium, matt */
+  --metal:#262d2a; --metal-hi:#333b36; --metal-lo:#151a17;
+  --frame:#2b322e; --frame-hi:#3a423c; --frame-lo:#11150f;
+  --recess:#0e120f; --seam:#080a08;
+  --bezel:#2a312d; --bezel-hi:#3c443e;
+  --screen:#0a0d0b; --screen-2:#0d110e;
+  --amber:#e8a01e; --amber-hi:#ffb52a; --red:#e2402a; --dim:#465049;
+  --lbl:#a8aa9c; --mute:#697066; --tint:#8fa394;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#070908}
+body{font-family:'Rajdhani',sans-serif;color:var(--lbl);display:flex;align-items:center;
+  justify-content:center;min-height:100vh;padding:16px;-webkit-font-smoothing:antialiased}
+
+/* ═══════════ AEUSSERES CHASSIS (gefraeste Alu-Platte) ═══════════ */
+.console{
+  position:relative;width:min(1240px,100%);aspect-ratio:16/10;border-radius:11px;
+  padding:14px;display:flex;flex-direction:column;gap:11px;overflow:hidden;
+  background:
+    linear-gradient(150deg,rgba(150,170,150,.025),transparent 40%),
+    linear-gradient(172deg,var(--metal-hi) 0%,var(--metal) 9%,var(--metal) 91%,var(--metal-lo) 100%);
+  box-shadow:
+    0 0 0 1px #000,
+    0 1px 0 rgba(170,190,170,.07) inset,
+    0 -3px 10px rgba(0,0,0,.6) inset,
+    0 36px 90px rgba(0,0,0,.85);
+}
+.console::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(135% 130% at 50% 42%,transparent 68%,rgba(0,0,0,.4) 100%);
+  mix-blend-mode:multiply
+}
+.console::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.5;
+  background:repeating-linear-gradient(98deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px)
+}
+
+/* Eck-Montagewinkel */
+.mount{position:absolute;width:46px;height:46px;z-index:6;
+  background:linear-gradient(150deg,var(--frame-hi),var(--frame) 55%,var(--frame-lo));
+  box-shadow:0 0 0 1px #000,0 1px 0 rgba(170,190,170,.06) inset,0 -1px 3px rgba(0,0,0,.5) inset}
+.mount.tl{top:0;left:0;border-radius:11px 0 14px 0}
+.mount.tr{top:0;right:0;border-radius:0 11px 0 14px}
+.mount.bl{bottom:0;left:0;border-radius:0 14px 0 11px}
+.mount.br{bottom:0;right:0;border-radius:14px 0 11px 0}
+
+/* ═══════════ KREUZSCHLITZ-VERSCHRAUBUNGEN (klein, versenkt) ═══════════ */
+.tx{position:absolute;z-index:9;width:9px;height:9px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#39413b,#232a24 55%,#11150f 100%);
+  box-shadow:0 0 0 1px rgba(0,0,0,.55),0 1px 1px rgba(170,190,170,.06),inset 0 1px 2px rgba(0,0,0,.6)}
+.tx::before,.tx::after{content:"";position:absolute;top:50%;left:50%;background:rgba(0,0,0,.62);
+  border-radius:.5px;transform:translate(-50%,-50%) rotate(var(--r,0deg))}
+.tx::before{width:6px;height:1.5px}
+.tx::after{width:1.5px;height:6px}
+.tx.pol{background:radial-gradient(circle at 38% 30%,#586057,#3a423a 55%,#1c211c 100%);
+  box-shadow:0 0 0 1px rgba(0,0,0,.5),0 1px 1px rgba(190,210,190,.12),inset 0 1px 2px rgba(0,0,0,.5)}
+
+/* ═══════════ EINGELASSENE STREIFEN (oben / unten) ═══════════ */
+.strip{
+  position:relative;z-index:4;border-radius:6px;
+  background:linear-gradient(180deg,var(--frame-lo),var(--frame) 50%,var(--frame-hi));
+  box-shadow:0 0 0 1px var(--seam),0 2px 4px rgba(0,0,0,.4),
+    0 1px 0 rgba(170,190,170,.05) inset,0 -2px 5px rgba(0,0,0,.5) inset}
+
+/* Hazard-Streifen (gelb gestrichelt) */
+.hazard{position:absolute;left:0;right:0;height:6px;z-index:3;pointer-events:none;
+  background:repeating-linear-gradient(-45deg,
+    rgba(232,160,30,.55) 0,rgba(232,160,30,.55) 5px,
+    rgba(0,0,0,.4) 5px,rgba(0,0,0,.4) 10px);opacity:.55}
+.hazard.top{top:0;border-radius:6px 6px 0 0}
+.hazard.bot{bottom:0;border-radius:0 0 6px 6px}
+
+.topstrip{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:16px;padding:11px 20px}
+.ident{position:relative;padding:7px 16px;border-radius:4px;
+  background:linear-gradient(180deg,#1a1f1b,#12150f);
+  box-shadow:0 0 0 1px var(--seam),0 2px 4px rgba(0,0,0,.5) inset,0 1px 0 rgba(170,190,170,.05)}
+.ident .a{font-family:'Michroma',sans-serif;font-size:clamp(13px,1.7vw,19px);letter-spacing:1px;
+  color:var(--lbl);text-shadow:0 -1px 0 rgba(0,0,0,.6),0 1px 0 rgba(160,180,160,.05)}
+.ident .b{font-family:'Share Tech Mono',monospace;font-size:clamp(7px,.85vw,9px);letter-spacing:3px;color:var(--mute);margin-top:3px}
+
+.embed-nav{display:flex;gap:9px;justify-self:center}
+.embed-btn{font-family:'Share Tech Mono',monospace;font-size:clamp(8px,1vw,11px);letter-spacing:2px;color:var(--amber);
+  border:1px solid var(--seam);border-radius:3px;padding:8px 15px;cursor:pointer;display:flex;align-items:center;gap:7px;user-select:none;
+  background:linear-gradient(180deg,#252c27,#171c18);
+  box-shadow:0 1px 0 rgba(170,190,170,.06) inset,0 2px 3px rgba(0,0,0,.5);transition:all .15s}
+.embed-btn:hover{color:var(--amber-hi);box-shadow:0 0 7px rgba(232,160,30,.1),0 2px 3px rgba(0,0,0,.5)}
+.embed-btn .ar{opacity:.55}
+
+.vent{width:64px;height:30px;border-radius:3px;position:relative;
+  background:repeating-linear-gradient(180deg,#0b0e0b 0 2px,#20271f 2px 5px);
+  box-shadow:0 0 0 1px var(--seam),0 2px 4px rgba(0,0,0,.6) inset}
+
+.brand{text-align:right;justify-self:end}
+.brand .w1{font-family:'Michroma',sans-serif;font-size:clamp(15px,1.9vw,23px);letter-spacing:5px;
+  color:#2f3531;text-shadow:0 1px 0 rgba(170,190,170,.09),0 -1px 1px rgba(0,0,0,.7);line-height:1}
+.brand .w2{font-family:'Share Tech Mono',monospace;font-size:clamp(7px,.8vw,9px);letter-spacing:4px;
+  color:#262b27;text-shadow:0 1px 0 rgba(170,190,170,.05);margin-top:3px}
+
+/* ═══════════ KERN: MFD-MODUL (Bezel + Screen + Soft-Keys) ═══════════ */
+.core{
+  position:relative;z-index:3;flex:1;min-height:0;border-radius:7px;padding:10px;
+  display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:stretch;
+  background:linear-gradient(180deg,var(--recess),#0a0d0b);
+  box-shadow:0 0 0 1px var(--seam),0 4px 12px rgba(0,0,0,.7) inset}
+
+.keys{display:flex;flex-direction:column;justify-content:space-evenly;gap:6px;padding:6px 0;width:clamp(20px,2.4vw,32px)}
+.key{flex:1;max-height:34px;border-radius:3px;position:relative;
+  background:linear-gradient(180deg,#2c332e,#191e1a);
+  box-shadow:0 0 0 1px var(--seam),0 1px 0 rgba(170,190,170,.06) inset,0 -1px 2px rgba(0,0,0,.5) inset;transition:all .15s}
+.key:hover{box-shadow:0 0 0 1px var(--seam),0 0 6px rgba(232,160,30,.12) inset}
+.key::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;
+  transform:translate(-50%,-50%);background:#11150f;box-shadow:0 0 0 1px rgba(0,0,0,.4) inset}
+.key.lit::after{background:var(--amber);box-shadow:0 0 5px rgba(232,160,30,.6)}
+
+.module{position:relative;border-radius:6px;padding:7px;
+  background:linear-gradient(180deg,var(--bezel-hi),var(--bezel) 55%,#1c221d);
+  box-shadow:0 0 0 1px var(--seam),0 1px 0 rgba(170,190,170,.07) inset,0 -2px 5px rgba(0,0,0,.5) inset,0 2px 5px rgba(0,0,0,.45)}
+.screen{position:relative;height:100%;border-radius:4px;overflow:hidden;display:flex;flex-direction:column;
+  padding:clamp(12px,1.7vw,22px) clamp(16px,2.2vw,30px) clamp(9px,1.2vw,14px);
+  background:
+    linear-gradient(180deg,rgba(232,160,30,.05),transparent 30%),
+    radial-gradient(120% 90% at 50% 0%,var(--screen-2),var(--screen) 60%,#070908 100%);
+  box-shadow:0 0 0 1px #000,0 0 26px rgba(0,0,0,.8) inset}
+.screen::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:6;opacity:.5;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.05) 3px 4px)}
+.scode{position:absolute;right:9px;bottom:6px;z-index:7;font-family:'Share Tech Mono',monospace;
+  font-size:8px;letter-spacing:1px;color:#39413a}
+
+/* ── UI (clean) ── */
+.grid{position:relative;z-index:4;flex:1;display:grid;grid-template-columns:1.05fr 1fr;
+  column-gap:clamp(18px,2.6vw,38px);min-height:0}
+.col{display:flex;flex-direction:column;min-height:0}
+.col.r{padding-left:clamp(18px,2.6vw,38px);border-left:1px solid rgba(140,160,140,.08)}
+.ghead{font-family:'Share Tech Mono',monospace;font-size:clamp(8px,.95vw,11px);letter-spacing:3px;color:var(--mute);
+  padding:0 2px 5px;margin-bottom:3px;border-bottom:1px solid rgba(140,160,140,.07)}
+.ghead:not(:first-child){margin-top:clamp(6px,1vw,12px)}
+.rows{display:flex;flex-direction:column;justify-content:space-evenly;flex:1;min-height:0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 2px;border-radius:3px;transition:background .12s}
+.row:hover{background:rgba(232,160,30,.03)}
+.lhs{display:flex;align-items:center;gap:9px;min-width:0}
+.led{width:6px;height:6px;border-radius:50%;flex:none;background:#1a1f1a;box-shadow:0 0 0 1px rgba(0,0,0,.5) inset;transition:all .2s}
+.led.on{background:var(--red);box-shadow:0 0 6px rgba(226,64,42,.7)}
+.led.lit{background:var(--amber);box-shadow:0 0 6px rgba(232,160,30,.6)}
+.lbl{font-weight:700;font-size:clamp(14px,1.85vw,24px);letter-spacing:.6px;color:var(--lbl)}
+.st{font-weight:600;font-size:clamp(11px,1.35vw,16px);letter-spacing:2px;text-align:right;color:var(--dim);transition:color .2s}
+.st.amber{color:var(--amber);text-shadow:0 0 5px rgba(232,160,30,.35)}
+.st.red{color:var(--red);text-shadow:0 0 5px rgba(226,64,42,.35)}
+.st.dim{color:var(--dim)}
+
+/* Status-Leiste im Screen */
+.statusbar{position:relative;z-index:5;display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+  margin-top:clamp(8px,1.2vw,14px);padding:clamp(7px,1vw,11px) 16px;border-radius:3px;
+  background:linear-gradient(180deg,rgba(232,160,30,.14),rgba(232,160,30,.05));
+  box-shadow:0 0 0 1px rgba(232,160,30,.25) inset}
+.nav{font-family:'Share Tech Mono',monospace;font-size:clamp(11px,1.3vw,15px);color:var(--amber);cursor:pointer;padding:0 6px;user-select:none}
+.nav:active{transform:scale(.85)}
+.stitle{justify-self:center;font-family:'Michroma',sans-serif;font-size:clamp(10px,1.25vw,15px);letter-spacing:7px;color:var(--amber-hi)}
+.cstat{justify-self:end;display:flex;align-items:center;gap:7px;font-family:'Share Tech Mono',monospace;font-size:clamp(7px,.9vw,10px);letter-spacing:1px;color:var(--mute)}
+.cled{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.cled.live{background:var(--amber);box-shadow:0 0 5px rgba(232,160,30,.6)}
+.cled.off{background:#3a1c14;box-shadow:0 0 5px rgba(226,64,42,.4)}
+
+/* ═══════════ UNTERER STREIFEN: Service-Log ═══════════ */
+.botstrip{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:9px 20px}
+.servicelog{font-family:'Share Tech Mono',monospace;font-size:clamp(7px,.82vw,9px);letter-spacing:1.5px;
+  line-height:1.5;color:#565d52;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+.servicelog .id{color:#727a6e;font-weight:bold;text-shadow:0 1px 0 rgba(0,0,0,.55),0 -1px 0 rgba(180,200,180,.05)}
+.servicelog b{color:#7a8174}
+.servicelog .r{color:#8a5642;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+.codes{justify-self:center;display:flex;gap:10px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;color:#474e46}
+.bright{justify-self:end;display:flex;align-items:center;gap:14px}
+.pages{justify-self:end;display:flex;gap:5px}
+.pg{width:6px;height:6px;border-radius:50%;background:#222823;box-shadow:0 0 0 1px rgba(0,0,0,.5) inset}
+.pg.on{background:var(--amber);box-shadow:0 0 5px rgba(232,160,30,.5)}
+
+/* ═══════════ RESPONSIVE ═══════════ */
+@media (max-width:900px){
+  .console{aspect-ratio:auto;min-height:calc(100vh - 24px)}
+  .lbl{font-size:clamp(14px,3.4vw,22px)}.st{font-size:clamp(11px,2.2vw,15px)}
+}
+@media (max-aspect-ratio:1/1){
+  .grid{grid-template-columns:1fr}
+  .col.r{padding-left:0;border-left:none;border-top:1px solid rgba(140,160,140,.08);margin-top:8px;padding-top:8px}
+  .ident .b,.brand .w2,.vent{display:none}
+  .keys{width:20px}
+}
+@media (max-width:520px){
+  .topstrip{grid-template-columns:auto 1fr;gap:8px;padding:9px 12px}
+  .embed-nav,.vent,.brand{display:none}
+  .keys{display:none}
+  .stitle{letter-spacing:4px}
+}
+
+/* Reduced Motion — Drake hat keine Dauer-Animationen, aber zur Sicherheit */
+@media (prefers-reduced-motion:reduce){
+  .console,.screen{animation:none !important}
+}

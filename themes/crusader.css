@@ -1,0 +1,399 @@
+/* ============================================================================
+   THEME: CRUSADER INDUSTRIES — Mercury Star Runner / C2 Hercules MFD
+   Look-Layer fuer ship-status. HTML-Skelett + JS sind hersteller-neutral.
+   Fan-made / inoffiziell - keine Verbindung zu Cloud Imperium Games.
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap');
+
+:root {
+  --navy:      #151c28;
+  --navy-hi:   #1e2838;
+  --navy-lo:   #0e1420;
+  --navy-mid:  #18202e;
+  --seam:      #0a1018;
+
+  --cyn:       #3cd4f0;
+  --cyn-hi:    #6ae4f8;
+  --cyn-lo:    #1488a8;
+  --cyn-glo:   rgba(60,212,240,.3);
+
+  --stripe:    rgba(200,220,240,.7);
+
+  --red-amb:   #c83030;
+  --scr:       #030810;
+  --scr2:      #050c18;
+
+  --act:       #5adcf4;
+  --crit:      #e03020;
+  --crit-glo:  rgba(224,48,32,.3);
+
+  --txt-lbl:   rgba(60,212,240,.45);
+  --txt-dim:   rgba(60,212,240,.1);
+
+  --amber:    var(--act);
+  --amber-hi: var(--cyn-hi);
+  --red:      var(--crit);
+  --dim:      var(--txt-dim);
+  --lbl:      var(--txt-lbl);
+  --mute:     rgba(60,212,240,.25);
+}
+
+* { margin:0; padding:0; box-sizing:border-box }
+html, body { height:100%; overflow:hidden }
+body {
+  font-family:'Rajdhani',sans-serif; color:var(--txt-lbl);
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:18px;
+  -webkit-font-smoothing:antialiased;
+  background: radial-gradient(ellipse 85% 70% at 50% 42%, #0c1220 0%, #070a12 55%, #040608 100%);
+}
+body::before {
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background: repeating-linear-gradient(0deg,
+    rgba(0,0,0,.08) 0, rgba(0,0,0,.08) 1px, transparent 1px, transparent 3px);
+  opacity:.4;
+}
+
+/* ════ CHASSIS ════ */
+.console {
+  position:relative;
+  width:min(1240px,100%); aspect-ratio:16/10;
+  border-radius:4px; padding:0;
+  display:flex; flex-direction:column; overflow:hidden;
+  background: linear-gradient(175deg,
+    var(--navy-hi) 0%, var(--navy) 12%, var(--navy-mid) 88%, var(--navy-lo) 100%);
+  border:2px solid var(--seam);
+  box-shadow:
+    inset 0 0 0 1px rgba(60,212,240,.12),
+    0 0 0 1px rgba(0,0,0,.8),
+    0 30px 80px rgba(0,0,0,.95);
+  animation: crdBoot 1.0s ease-out;
+}
+
+/* Weisse Konturlinien links/rechts */
+.console::before {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
+  background:
+    linear-gradient(to right, var(--stripe) 0, var(--stripe) 2px, transparent 2px),
+    linear-gradient(to left,  var(--stripe) 0, var(--stripe) 2px, transparent 2px);
+  opacity:.3;
+}
+
+/* Roter Ambient unten */
+.console::after {
+  content:""; position:absolute; bottom:0; left:0; right:0; height:35%;
+  pointer-events:none; z-index:1;
+  background: linear-gradient(to top, rgba(200,48,48,.07) 0%, transparent 100%);
+  mix-blend-mode:screen;
+}
+
+/* ════ ECKMODULE — WEG (1) ════ */
+.mount { display:none }
+
+.tx, .tx.pol { display:none }
+.hazard      { display:none }
+.vent        { display:none }
+
+.strip {
+  background:linear-gradient(180deg, var(--navy-hi), var(--navy-mid));
+  box-shadow:none; flex-shrink:0;
+}
+.topstrip { border-bottom:1px solid rgba(60,212,240,.1) }
+.botstrip  { border-top:1px solid rgba(60,212,240,.1) }
+
+/* ════ KOPF ════ */
+.topstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:12px; padding:10px 18px;
+}
+
+.ident {
+  order:1; justify-self:start;
+  padding:5px 12px;
+  background:rgba(60,212,240,.06);
+  border:1px solid rgba(60,212,240,.15);
+  border-radius:2px;
+}
+.ident .a {
+  font-family:'Barlow Condensed',sans-serif; font-weight:600;
+  font-size:clamp(11px,1.45vw,16px); letter-spacing:.12em;
+  color:var(--cyn); text-transform:uppercase;
+}
+.ident .b {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.7vw,8px); letter-spacing:3px;
+  color:rgba(60,212,240,.35); margin-top:2px;
+}
+
+.embed-nav { order:2; display:flex; gap:6px; justify-self:center }
+.embed-btn {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(7px,.82vw,9px); letter-spacing:2px; color:var(--txt-lbl);
+  background:rgba(60,212,240,.04); border:1px solid rgba(60,212,240,.12);
+  border-radius:2px; padding:5px 11px;
+  cursor:pointer; display:flex; align-items:center; gap:5px; user-select:none;
+  transition:all .14s;
+}
+.embed-btn:hover { color:var(--cyn); border-color:rgba(60,212,240,.3) }
+.embed-btn .ar { opacity:.4 }
+
+.brand { order:3; text-align:right; justify-self:end }
+.brand .w1 {
+  font-family:'Barlow Condensed',sans-serif; font-weight:400;
+  font-size:clamp(14px,1.8vw,22px); letter-spacing:.3em;
+  color:rgba(60,212,240,.08); line-height:1; text-transform:uppercase;
+}
+.brand .w2 {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.68vw,8px); letter-spacing:4px;
+  color:rgba(60,212,240,.06); margin-top:3px;
+}
+
+/* ════════════════════════════════════════════════════════
+   KERN — Keys OBEN (KL) und UNTEN (KR)
+   flex-column: DOM-Reihenfolge KL → module → KR = oben → mitte → unten
+   ════════════════════════════════════════════════════════ */
+.core {
+  position:relative; z-index:3; flex:1; min-height:0;
+  padding:8px 10px;
+  display:flex; flex-direction:column;
+  gap:7px;
+  background:linear-gradient(180deg, var(--navy-lo), #080c14);
+  box-shadow:inset 0 4px 16px rgba(0,0,0,.7);
+}
+
+/* ════ BUTTON-LEISTEN — jetzt HORIZONTAL ════ */
+.keys {
+  display:flex; flex-direction:row;
+  justify-content:space-between; align-items:stretch;
+  gap:5px; padding:0;
+  height:clamp(22px,2.8vw,30px);
+  width:100%; flex-shrink:0;
+}
+
+.key {
+  flex:1; height:100%; border-radius:2px; position:relative;
+  background:linear-gradient(180deg, var(--navy-hi), var(--navy-mid));
+  border:1px solid rgba(60,212,240,.1);
+  transition:all .14s;
+}
+.key:hover { border-color:rgba(60,212,240,.3); background:rgba(60,212,240,.06) }
+.key::after {
+  content:""; position:absolute; left:50%; top:50%; width:4px; height:4px;
+  border-radius:1px; transform:translate(-50%,-50%);
+  background:rgba(60,212,240,.12);
+}
+.key.lit::after { background:var(--cyn); box-shadow:0 0 5px var(--cyn-glo) }
+
+/* ════ MFD-BEZEL ════ */
+.module {
+  position:relative; border-radius:3px; padding:5px; flex:1; min-height:0;
+  background:#0a0e18;
+  border:1px solid rgba(60,212,240,.15);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.6),
+    inset 0 0 20px rgba(0,0,0,.8);
+}
+.module::before {
+  content:""; position:absolute; top:0; left:10%; right:10%; height:1px;
+  background:linear-gradient(90deg, transparent, var(--cyn), transparent);
+  opacity:.35; z-index:2;
+}
+
+/* ════ SCREEN ════ */
+.screen {
+  position:relative; height:100%; border-radius:2px; overflow:hidden;
+  display:flex; flex-direction:column;
+  padding:clamp(12px,1.8vw,22px) clamp(16px,2.3vw,30px) clamp(9px,1.2vw,14px);
+  background:
+    radial-gradient(110% 80% at 50% 0%, rgba(60,212,240,.05), transparent 50%),
+    linear-gradient(180deg, var(--scr2), var(--scr) 40%, #020508 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(60,212,240,.08),
+    inset 0 0 30px rgba(0,0,0,.9);
+  animation: crdFlicker 20s ease-in-out infinite;
+}
+.screen::after {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background:
+    linear-gradient(rgba(60,212,240,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(60,212,240,.025) 1px, transparent 1px);
+  background-size:30px 24px;
+}
+.screen::before {
+  content:""; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent 5%, var(--cyn) 30%, var(--cyn-hi) 50%, var(--cyn) 70%, transparent 95%);
+  opacity:.35; z-index:6;
+}
+.scode {
+  position:absolute; right:8px; bottom:6px; z-index:8;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(60,212,240,.15);
+}
+
+/* ════ STATUS-GRID ════ */
+.grid {
+  position:relative; z-index:4; flex:1;
+  display:grid; grid-template-columns:1fr 1fr;
+  column-gap:clamp(18px,2.8vw,40px); min-height:0;
+}
+.col   { display:flex; flex-direction:column; min-height:0; position:relative }
+.col.r { padding-left:0; border-left:none }
+.col.r::before {
+  content:""; position:absolute; top:0; bottom:0;
+  width:1px; left:calc(-1 * clamp(9px,1.4vw,20px));
+  background:linear-gradient(to bottom,
+    transparent 0%, rgba(60,212,240,.18) 15%,
+    rgba(60,212,240,.18) 85%, transparent 100%);
+  pointer-events:none; z-index:2;
+}
+
+.ghead {
+  font-family:'Barlow Condensed',sans-serif; font-weight:500;
+  font-size:clamp(8px,.88vw,11px); letter-spacing:.2em;
+  color:rgba(60,212,240,.55);
+  padding:0 0 4px; margin-bottom:7px;
+  border-bottom:1px solid rgba(60,212,240,.2);
+  align-self:stretch; text-transform:uppercase;
+}
+.ghead:not(:first-child) { margin-top:clamp(8px,1.4vw,16px) }
+
+.rows { display:flex; flex-direction:column; justify-content:space-evenly; flex:1; min-height:0 }
+.row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px; padding:clamp(2px,.4vw,5px) 3px;
+  border-bottom:1px solid rgba(60,212,240,.06);
+  transition:background .12s;
+}
+.row:hover { background:rgba(60,212,240,.04) }
+.row:last-child { border-bottom:none }
+.row:has(.st.red) { animation:crdHeat 1.6s ease-in-out infinite }
+.lhs { display:flex; align-items:center; gap:7px; min-width:0 }
+
+.led {
+  width:7px; height:5px; border-radius:1px; flex:none;
+  background:rgba(60,212,240,.08); border:1px solid rgba(60,212,240,.15);
+  transition:background .15s, border-color .15s, box-shadow .15s;
+}
+.led.on  { background:var(--crit); border-color:rgba(224,48,32,.6); box-shadow:0 0 5px var(--crit-glo) }
+.led.lit { background:var(--cyn);  border-color:rgba(60,212,240,.6); box-shadow:0 0 5px var(--cyn-glo) }
+
+.lbl {
+  font-family:'Barlow Condensed',sans-serif; font-weight:600;
+  font-size:clamp(14px,1.8vw,23px); letter-spacing:.04em;
+  color:rgba(60,212,240,.3); text-transform:uppercase;
+}
+.st {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(10px,1.22vw,15px); letter-spacing:2px;
+  text-align:right; color:var(--txt-dim); transition:color .15s;
+}
+.st.amber { color:var(--act); text-shadow:0 0 8px var(--cyn-glo) }
+[data-sys="eng"] .st.amber { animation:none }
+.st.red   { color:var(--crit); text-shadow:0 0 6px var(--crit-glo); animation:crdWarn 1.5s ease-in-out infinite }
+.st.dim   { color:var(--txt-dim); animation:none }
+.row:has(.st.amber) .lbl { color:rgba(60,212,240,.6) }
+.row:has(.st.dim)   .lbl { color:rgba(60,212,240,.15) }
+.row:has(.st.red)   .lbl { color:rgba(220,100,80,.55) }
+
+/* ════ STATUS-LEISTE — beide Pfeile wieder drin ════ */
+.statusbar {
+  position:relative; z-index:5;
+  display:grid; grid-template-columns:auto 1fr auto; align-items:center;
+  margin-top:clamp(7px,1.2vw,14px); padding:5px 10px;
+  border:1px solid rgba(60,212,240,.12); border-radius:2px;
+  background:rgba(60,212,240,.03);
+}
+.nav {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(9px,1.1vw,12px); color:rgba(60,212,240,.35);
+  cursor:pointer; padding:0 6px; user-select:none; transition:color .12s;
+}
+.nav:hover { color:var(--cyn) }
+.nav:active { transform:scale(.88) }
+.stitle {
+  justify-self:center;
+  font-family:'Barlow Condensed',sans-serif; font-weight:500;
+  font-size:clamp(9px,1.1vw,13px); letter-spacing:.4em;
+  color:rgba(60,212,240,.5); text-transform:uppercase;
+}
+
+/* ════ FUSS — STANDBY wieder hier (4) ════ */
+.botstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:12px; padding:8px 18px;
+}
+.servicelog {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.72vw,7px); letter-spacing:1.5px; line-height:1.5;
+  color:rgba(60,212,240,.2);
+}
+.servicelog .id { color:rgba(60,212,240,.35); font-weight:bold }
+.servicelog b   { color:rgba(60,212,240,.26) }
+.servicelog .r  { color:rgba(200,48,48,.4) }
+.codes {
+  justify-self:center; display:flex; gap:10px;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(60,212,240,.14);
+}
+.bright { justify-self:end; display:flex; align-items:center; gap:10px }
+.cstat {
+  display:flex; align-items:center; gap:5px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.78vw,8px); letter-spacing:1px; color:rgba(60,212,240,.3);
+}
+.cled      { width:7px; height:4px; border-radius:1px; background:rgba(60,212,240,.1); border:1px solid rgba(60,212,240,.18) }
+.cled.live { background:var(--cyn); border-color:rgba(60,212,240,.6); box-shadow:0 0 5px var(--cyn-glo) }
+.cled.off  { background:rgba(200,48,48,.35); border-color:rgba(200,48,48,.45) }
+.pages { display:flex; gap:4px }
+.pg {
+  width:8px; height:4px; border-radius:1px;
+  background:rgba(60,212,240,.08); border:1px solid rgba(60,212,240,.14);
+}
+.pg.on { background:rgba(60,212,240,.45); border-color:rgba(60,212,240,.55); box-shadow:0 0 4px var(--cyn-glo) }
+
+/* ════ ANIMATIONEN ════ */
+@keyframes crdWarn {
+  0%, 100% { opacity:.7;  filter:brightness(1.0)  }
+  50%       { opacity:1;   filter:brightness(1.25) }
+}
+@keyframes crdHeat {
+  0%, 100% { box-shadow:inset 0 0 0 rgba(224,48,32,0)    }
+  50%       { box-shadow:inset 3px 0 0 rgba(224,48,32,.3) }
+}
+@keyframes crdFlicker {
+  0%, 95%, 100% { opacity:1   }
+  96%           { opacity:.95 }
+  97%           { opacity:1   }
+  98%           { opacity:.93 }
+  99%           { opacity:1   }
+}
+@keyframes crdBoot {
+  0%   { opacity:0; filter:brightness(0) blur(2px) }
+  15%  { opacity:1; filter:brightness(2.2) blur(0) }
+  30%  { filter:brightness(1.1) }
+  100% { opacity:1; filter:none }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .console, .screen, .st.red, .row:has(.st.red) { animation:none !important }
+}
+
+@media (max-width:900px){
+  .console { aspect-ratio:auto; min-height:calc(100vh - 26px) }
+  .lbl { font-size:clamp(13px,3.2vw,20px) }
+  .st  { font-size:clamp(10px,2vw,13px) }
+}
+@media (max-aspect-ratio:1/1){
+  .grid { grid-template-columns:1fr }
+  .col.r::before { display:none }
+  .col.r { padding-top:8px; margin-top:10px; border-top:1px solid rgba(60,212,240,.1) }
+  .ident .b, .brand .w2 { display:none }
+}
+@media (max-width:520px){
+  .topstrip { grid-template-columns:auto 1fr; padding:8px 12px }
+  .embed-nav, .brand { display:none }
+  .stitle { letter-spacing:.2em }
+  .screen { padding:10px 12px 8px }
+  .grid { column-gap:16px }
+}

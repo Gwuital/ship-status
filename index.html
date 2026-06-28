@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ship Status Console</title>
+<link id="themecss" rel="stylesheet" href="themes/drake.css">
+<script>
+  (function(){
+    var ok=['drake','rsi','aegis','anvil','origin','crusader','misc','cnou','banu','xian','argo','vanduul'];
+    var DEFAULT='drake';
+    var t=(new URLSearchParams(location.search).get('theme')||DEFAULT).toLowerCase();
+    if(ok.indexOf(t)<0)t=DEFAULT;
+    document.getElementById('themecss').href='themes/'+t+'.css';
+    document.documentElement.dataset.theme=t;
+    document.title='Ship Status — '+t.toUpperCase();
+  })();
+</script>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+<div class="console" id="H">
+  <span class="mount tl"></span><span class="mount tr"></span>
+  <span class="mount bl"></span><span class="mount br"></span>
+  <div class="topstrip strip" id="TB">
+    <div class="hazard top"></div>
+    <div class="ident"><div class="a"></div><div class="b"></div></div>
+    <div class="embed-nav">
+      <div class="embed-btn" onclick="prev()"><span class="ar">&#9664;</span> EMBED</div>
+      <div class="embed-btn" onclick="next()">EMBED <span class="ar">&#9654;</span></div>
+    </div>
+    <div class="vent"></div>
+    <div class="brand"><div class="w1"></div><div class="w2"></div></div>
+    <div class="hazard bot"></div>
+  </div>
+  <div class="core">
+    <div class="keys" id="KL"></div>
+    <div class="module" id="MOD">
+      <div class="screen">
+        <div class="grid">
+          <div class="col">
+            <div class="ghead">SHIP / FLIGHT</div>
+            <div class="rows" data-grp="0"></div>
+          </div>
+          <div class="col r">
+            <div class="ghead">ACCESS</div>
+            <div class="rows" data-grp="1"></div>
+            <div class="ghead">SYSTEMS</div>
+            <div class="rows" data-grp="2"></div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <div class="nav" onclick="prev()">&#9664;</div>
+          <div class="stitle">SHIP STATUS</div>
+          <div class="nav" onclick="next()">&#9654;</div>
+        </div>
+        <div class="scode"></div>
+      </div>
+    </div>
+    <div class="keys" id="KR"></div>
+  </div>
+  <div class="botstrip strip">
+    <div class="servicelog"></div>
+    <div class="codes"><span></span><span></span><span></span></div>
+    <div class="bright">
+      <div class="cstat"><span class="cled off" id="cled"></span><span id="ctxt">STANDBY</span></div>
+      <div class="pages"><span class="pg on"></span><span class="pg"></span><span class="pg"></span></div>
+    </div>
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// BOOLEAN-SYSTEME
+// Jedes System hat:
+//   grp    — Anzeigegruppe (0=flight, 1=access, 2=systems)
+//   group  — sprechender Name für spätere Logik
+//   type   — 'boolean' | künftig: 'value' | 'status'
+//   lbl    — Anzeigelabel
+//   states — on/off Texte + Farb-Klassen
+// ═══════════════════════════════════════════════════════════════════
+const SYS = {
+  pwr:   { grp:0, group:'flight',  type:'boolean', lbl:'PWR',    states:{ on:'NOM',    off:'OFF',    onC:'amber', offC:'amber' } },
+  eng:   { grp:0, group:'flight',  type:'boolean', lbl:'ENG',    states:{ on:'O/L',    off:'D/C',    onC:'amber', offC:'dim'   } },
+  shld:  { grp:0, group:'flight',  type:'boolean', lbl:'SHLD',   states:{ on:'ACT',    off:'DN',     onC:'amber', offC:'dim'   } },
+  wpn:   { grp:0, group:'flight',  type:'boolean', lbl:'WPN',    states:{ on:'ARM',    off:'SAFE',   onC:'red',   offC:'dim'   } },
+  gear:  { grp:0, group:'flight',  type:'boolean', lbl:'GEAR',   states:{ on:'EXT',    off:'STW',    onC:'red',   offC:'dim'   } },
+  vtol:  { grp:0, group:'flight',  type:'boolean', lbl:'VTOL',   states:{ on:'LFT',    off:'CRZ',    onC:'red',   offC:'amber' } },
+  wng:   { grp:0, group:'flight',  type:'boolean', lbl:'WNG',    states:{ on:'UP',     off:'FLT',    onC:'red',   offC:'amber' } },
+  mode:  { grp:1, group:'access',  type:'boolean', lbl:'MODE',   states:{ on:'SCM',    off:'NAV',    onC:'amber', offC:'amber' } },
+  doors: { grp:1, group:'access',  type:'boolean', lbl:'DOORS',  states:{ on:'OPEN',   off:'CLOSED', onC:'amber', offC:'amber' } },
+  lock:  { grp:1, group:'access',  type:'boolean', lbl:'LOCK',   states:{ on:'LOCKED', off:'UNLKD',  onC:'amber', offC:'amber' } },
+  esp:   { grp:2, group:'systems', type:'boolean', lbl:'ESP',    states:{ on:'ON',     off:'OFF',    onC:'amber', offC:'dim'   } },
+  gsaf:  { grp:2, group:'systems', type:'boolean', lbl:'GSAF',   states:{ on:'ON',     off:'OFF',    onC:'red',   offC:'dim'   } },
+  cpld:  { grp:2, group:'systems', type:'boolean', lbl:'CPLD',   states:{ on:'ON',     off:'OFF',    onC:'red',   offC:'amber' } },
+  lights:{ grp:2, group:'systems', type:'boolean', lbl:'LIGHTS', states:{ on:'ON',     off:'OFF',    onC:'amber', offC:'dim'   } },
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// VALUES — vorbereitet für Telemetriedaten (Fuel, Shield-%, etc.)
+// Noch KEINE Anzeige — nur Struktur für spätere Implementierung.
+// Sobald SC Telemetriedaten verfügbar sind (z.B. via 4.8 Telemetry),
+// kann hier direkt implementiert werden ohne den Core umzubauen.
+//
+// Felder:
+//   group  — Systemgruppe ('flight' | 'systems' | ...)
+//   lbl    — Anzeigelabel
+//   unit   — Einheit ('%' | 'km/h' | ...)
+//   warn   — Warnschwelle (gelb)
+//   crit   — Kritisch-Schwelle (rot)
+// ═══════════════════════════════════════════════════════════════════
+const VALUES = {
+  // fuel:         { group:'flight',  lbl:'FUEL',   unit:'%', warn:20, crit:10 },
+  // shield_front: { group:'flight',  lbl:'SHLD F', unit:'%', warn:30, crit:10 },
+  // shield_rear:  { group:'flight',  lbl:'SHLD R', unit:'%', warn:30, crit:10 },
+  // heat:         { group:'systems', lbl:'HEAT',   unit:'%', warn:70, crit:90 },
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// MQTT-ALIAS — welche MQTT-Keys werden auf welches System gemappt
+// ═══════════════════════════════════════════════════════════════════
+const ALIAS = {
+  pwr:   ['pwr','ship_power'],
+  eng:   ['eng','engines'],
+  shld:  ['shld','shields'],
+  wpn:   ['wpn','weapons'],
+  gear:  ['gear','flt'],
+  vtol:  ['vtol'],
+  wng:   ['wng','wings'],
+  doors: ['doors'],
+  lock:  ['lock'],
+  mode:  ['mode'],
+  lights:['lights','light'],
+  esp:   ['esp'],
+  gsaf:  ['gsaf'],
+  cpld:  ['cpld'],
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// THEME META — Hersteller-Informationen pro Theme
+// ═══════════════════════════════════════════════════════════════════
+const THEME_META = {
+  drake:   { ident:'DIP-MFD // V2.4',       division:'INTERPLANETARY',    brand:'DRAKE',   sub:'DRAKE INTERPLANETARY', scode:'DIP-24R',  codes:['4X7QDIP','REV B','SYS 02\u00B718'], log:'<span class="id">DIP-2291</span> \u00B7 <b>SYSTEM LOG</b><br>BOOT <span class="r">OK</span> \u00B7 FW V2.4 \u00B7 CAL B-02' },
+  rsi:     { ident:'RSI-MFD // V-04',        division:'AVIONICS DIVISION', brand:'RSI',     sub:'ROBERTS SPACE IND.',   scode:'RSI-7AX4', codes:['4Y7QRSI','REV A','SYS 04\u00B719'], log:'<span class="id">RSI-4412</span> \u00B7 <b>AVIONICS LOG</b><br>MFD CHECK <span class="r">PASS</span> \u00B7 FW R-07 \u00B7 CAL A-01' },
+  aegis:   { ident:'ADMFD-7 // MK.III',      division:'TACTICAL SYSTEMS',  brand:'AEGIS',   sub:'AEGIS DYNAMICS',       scode:'AD-7MK3',  codes:['TACOP-77','MIL-E','SYS 07\u00B722'], log:'<span class="id">AD-7741</span> \u00B7 <b>TACTICAL LOG</b><br>SYS INIT <span class="r">PASS</span> \u00B7 FW MK3-R09 \u00B7 CAL T-04' },
+  anvil:   { ident:'AAV-MFD // M2',          division:'AVIONICS GROUP',    brand:'ANVIL',   sub:'ANVIL AEROSPACE',      scode:'AAV-M2',   codes:['AAV-09','REV C','SYS 05\u00B711'],   log:'<span class="id">AAV-3360</span> \u00B7 <b>AVIONICS LOG</b><br>SYS ONLINE <span class="r">OK</span> \u00B7 FW M2-R04 \u00B7 CAL C-02' },
+  origin:  { ident:'OJ \u00B7 300-MFD',      division:'JUMPWORKS GmbH',   brand:'ORIGIN',  sub:'ORIGIN JUMPWORKS',     scode:'OJ-3MFD',  codes:['OJ-300','REV S','SYS 03\u00B724'],   log:'<span class="id">OJ-0912</span> \u00B7 <b>SYSTEM</b><br>INIT <span class="r">OK</span> \u00B7 FW S-02 \u00B7 CAL S-01' },
+  crusader:{ ident:'CRI-MFD // SR-7',        division:'STAR RUNNER DIV.', brand:'CRUSADER',sub:'CRUSADER INDUSTRIES',  scode:'CRI-SR7',  codes:['CRI-44','REV D','SYS 04\u00B726'],   log:'<span class="id">CRI-2241</span> \u00B7 <b>SYSTEM LOG</b><br>BOOT <span class="r">OK</span> \u00B7 FW D-03 \u00B7 CAL D-01' },
+  misc:    { ident:'MISC-MFD // FL-9',       division:'FREELANCER DIV.',  brand:'misc',    sub:'MUSASHI INDUSTRIAL',   scode:'MSC-FL9',  codes:['MSC-09','REV F','SYS 09\u00B724'],   log:'<span class="id">MSC-4471</span> \u00B7 <b>SYSTEM LOG</b><br>INIT <span class="r">OK</span> \u00B7 FW F-02 \u00B7 CAL F-01' },
+  cnou:    { ident:'CNOU-MFD // M-5',        division:'MUSTANG DIV.',     brand:'CNOU',    sub:'CONSOLIDATED OUTLAND', scode:'CNO-M5',   codes:['CNO-05','REV M','SYS 05\u00B724'],   log:'<span class="id">CNO-1182</span> \u00B7 <b>SYSTEM</b><br>BOOT <span class="r">OK</span> \u00B7 FW M-01 \u00B7 CAL M-01' },
+  banu:    { ident:'BMM \u00B7 MERCHANTMAN', division:'BANU COLLECTIVE',  brand:'BANU',    sub:'BANU COLLECTIVE',      scode:'BNU-MMX',  codes:['BNU-01','\u25C8 IV','SYS \u25C8\u00B724'], log:'<span class="id">BNU-\u25C8\u25C8\u25C81</span> \u00B7 <b>COLLECTIVE</b><br>AWAKEN <span class="r">\u25C8</span> \u00B7 CYCLE IV \u00B7 ALIGN' },
+  xian:    { ident:'AOPOA \u00B7 KHARTU-AL', division:"XI'AN COLLECTIVE", brand:"XI'AN",   sub:'AOPOA SYSTEMS',        scode:'APO-KAL',  codes:['APO-01','\u25B3 IX','SYS \u25B3\u00B724'], log:'<span class="id">APO-\u25B3\u25B31</span> \u00B7 <b>COLLECTIVE</b><br>ALIGN <span class="r">\u25B3</span> \u00B7 CYCLE IX \u00B7 SYNC' },
+  argo:    { ident:'ARGO \u00B7 MOLE-MFD',   division:'ASTRONAUTICS',     brand:'ARGO',    sub:'ARGO ASTRONAUTICS',    scode:'ARG-MOL',  codes:['ARG-09','REV C','SYS 09\u00B726'],   log:'<span class="id">ARG-4491</span> \u00B7 <b>SYSTEM LOG</b><br>INIT <span class="r">OK</span> \u00B7 FW C-04 \u00B7 CAL C-01' },
+  vanduul: { ident:'VDL \u00B7 SCYTHE-MFD',  division:'VANDUUL WAR FLEET',brand:'VANDUUL', sub:'WAR FLEET',            scode:'VDL-SCY',  codes:['VDL-\u2620\u2620','WAR I','SYS \u2620\u00B724'], log:'<span class="id">VDL-\u2620\u26201</span> \u00B7 <b>WAR SYSTEM</b><br>HUNT <span class="r">\u2620</span> \u00B7 CYCLE I \u00B7 KILL' },
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// THEME INIT
+// ═══════════════════════════════════════════════════════════════════
+const theme = document.documentElement.dataset.theme || 'drake';
+const META  = THEME_META[theme] || THEME_META['drake'];
+
+(function fillMeta() {
+  const set = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
+  set('.ident .a', META.ident);
+  set('.ident .b', META.division);
+  set('.brand .w1', META.brand);
+  set('.brand .w2', META.sub);
+  set('.scode',     META.scode);
+  const log = document.querySelector('.servicelog');
+  if (log) log.innerHTML = META.log;
+  const cs = document.querySelectorAll('.codes span');
+  (META.codes || []).forEach((c, i) => { if (cs[i]) cs[i].textContent = c; });
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+// DOM AUFBAU — Boolean-Systeme
+// ═══════════════════════════════════════════════════════════════════
+const cell = {};
+document.querySelectorAll('.rows').forEach(box => {
+  const g = +box.dataset.grp;
+  for (const id in SYS) {
+    if (SYS[id].grp !== g) continue;
+    const s   = SYS[id].states;
+    const row = document.createElement('div'); row.className = 'row'; row.dataset.sys = id;
+    const lhs = document.createElement('div'); lhs.className = 'lhs';
+    const led = document.createElement('span'); led.className = 'led';
+    const lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = SYS[id].lbl;
+    lhs.append(led, lbl);
+    const st  = document.createElement('span'); st.className = 'st dim'; st.textContent = s.off;
+    row.append(lhs, st);
+    box.appendChild(row);
+    cell[id] = { st, led };
+  }
+});
+
+// Soft-Keys
+['KL','KR'].forEach(kid => {
+  const k = document.getElementById(kid);
+  for (let i = 0; i < 6; i++) {
+    const b = document.createElement('div'); b.className = 'key';
+    if (i === (kid === 'KL' ? 1 : 4)) b.classList.add('lit');
+    k.appendChild(b);
+  }
+});
+
+// Schrauben (Drake-Deko, andere Themes blenden via CSS aus)
+function mkTx(x, y) {
+  const s = document.createElement('span'); s.className = 'tx';
+  if (Math.random() > .68) s.classList.add('pol');
+  s.style.left = x; s.style.top = y;
+  s.style.setProperty('--r', (Math.random() * 44 - 22 | 0) + 'deg');
+  return s;
+}
+const H = document.getElementById('H');
+[['14px','14px'],['calc(100% - 23px)','14px'],['14px','calc(100% - 23px)'],['calc(100% - 23px)','calc(100% - 23px)'],
+ ['50%','9px'],['50%','calc(100% - 18px)'],['9px','50%'],['calc(100% - 18px)','50%'],
+ ['33%','9px'],['66%','9px'],['33%','calc(100% - 18px)'],['66%','calc(100% - 18px)']
+].forEach(([x, y]) => H.appendChild(mkTx(x, y)));
+const MOD = document.getElementById('MOD');
+[['7px','7px'],['calc(100% - 16px)','7px'],['7px','calc(100% - 16px)'],['calc(100% - 16px)','calc(100% - 16px)']
+].forEach(([x, y]) => MOD.appendChild(mkTx(x, y)));
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE & RENDER — Boolean-Systeme
+// ═══════════════════════════════════════════════════════════════════
+const state = {};
+for (const id in SYS) state[id] = false;
+
+function render() {
+  for (const id in SYS) {
+    const s = SYS[id].states;
+    const v = !!state[id];
+    const c = v ? s.onC : s.offC;
+    cell[id].st.textContent = v ? s.on : s.off;
+    cell[id].st.className   = 'st ' + c;
+    cell[id].led.classList.toggle('on',  c === 'red');
+    cell[id].led.classList.toggle('lit', c === 'amber');
+  }
+  // TODO (wenn Telemetrie verfügbar): renderValues()
+}
+render();
+
+function applyState(o) {
+  if (!o || typeof o !== 'object') return;
+  // Boolean-Systeme
+  for (const id in SYS) {
+    for (const k of ALIAS[id]) {
+      if (k in o) { state[id] = (o[k] === 1 || o[k] === true); break; }
+    }
+  }
+  // TODO (wenn Telemetrie verfügbar): applyValues(o)
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MQTT
+// ═══════════════════════════════════════════════════════════════════
+const cled = document.getElementById('cled');
+const ctxt = document.getElementById('ctxt');
+function setConn(cls, txt) { cled.className = 'cled ' + cls; ctxt.textContent = txt; }
+
+const p      = new URLSearchParams(location.search);
+const topic  = p.get('topic');
+const broker = p.get('broker') || 'broker.emqx.io';
+const DEBUG  = p.get('debug') === '1';
+let _n = 0, _raw = '(noch keine)', _conn = 'init';
+
+const _dbg = (() => {
+  if (!DEBUG) return null;
+  const b = document.createElement('div');
+  b.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99999;max-width:92vw;font:12px/1.5 monospace;color:#aaa;background:rgba(0,0,0,.88);padding:10px 12px;border:1px solid rgba(255,255,255,.15);border-radius:3px;white-space:pre-wrap;word-break:break-all';
+  document.body.appendChild(b);
+  return b;
+})();
+function dbg() {
+  if (!_dbg) return;
+  _dbg.textContent = '[DEBUG] theme=' + theme + '\nbroker: ' + broker + ':8084/mqtt\ntopic:  ' + topic + '\nconn:   ' + _conn + '\nmsgs:   ' + _n + '\nlast:   ' + _raw;
+}
+dbg();
+
+if (topic && typeof mqtt !== 'undefined') {
+  setConn('', 'LINK...'); _conn = 'LINK...'; dbg();
+  try {
+    const cl = mqtt.connect('wss://' + broker + ':8084/mqtt', {
+      clientId: 'ssc-' + theme + '-' + Math.random().toString(16).slice(2, 8),
+      reconnectPeriod: 3000, connectTimeout: 8000
+    });
+    cl.on('connect',   () => { setConn('live','LIVE');    cl.subscribe(topic); _conn='LIVE';    dbg(); });
+    cl.on('reconnect', () => { setConn('','LINK...');                          _conn='LINK...'; dbg(); });
+    cl.on('close',     () => { setConn('off','OFFLINE');                       _conn='OFFLINE'; dbg(); });
+    cl.on('error',  e  => { setConn('off','ERROR');                            _conn='ERR:'+(e&&e.message||e); dbg(); });
+    cl.on('message', (t, m) => {
+      _n++; _raw = m.toString();
+      try { applyState(JSON.parse(_raw)); } catch(e) { _raw = 'PARSE-ERR'; }
+      dbg();
+    });
+  } catch(e) { setConn('off','MQTT N/A'); _conn='MQTT N/A'; dbg(); }
+} else {
+  setConn('off','STANDBY'); _conn='STANDBY'; dbg();
+}
+
+function next() { flash(); }
+function prev() { flash(); }
+function flash() {
+  const t = document.querySelector('.stitle');
+  t.style.opacity = '.4';
+  setTimeout(() => t.style.opacity = '1', 120);
+}
+</script>
+</body>
+</html>

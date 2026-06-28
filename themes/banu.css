@@ -1,0 +1,502 @@
+/* ============================================================================
+   THEME: BANU — Merchantman MFD
+   Look-Layer fuer ship-status. HTML-Skelett + JS sind hersteller-neutral.
+   Fan-made / inoffiziell - keine Verbindung zu Cloud Imperium Games.
+
+   KREATIV-REBUILD basierend auf ingame Screenshots:
+   - Oktagon-Bezel via clip-path (wie die hex-Panel-Rahmen in Bild 1)
+   - Doppellinien-Rahmen (kupfer aussen, dunkel innen)
+   - Organische Rippenstruktur auf Chassis (Bild 3/4)
+   - Teal als Bio-Ambient von innen (Bild 2/3/4)
+   - Amber/Orange als Screen-Content (Bild 1)
+   - Warme Amber-Punktlichter links/rechts (Bild 2/4)
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Cinzel:wght@400;500&display=swap');
+
+:root {
+  /* Chassis — fast-schwarz, leicht warm wie Chitinpanzer */
+  --blk:       #0a0806;
+  --blk-hi:    #141008;
+  --blk-lo:    #060402;
+  --seam:      #1e1008;
+
+  /* Kupfer — Rahmenlinien, Akzente */
+  --cop:       #c86010;
+  --cop-hi:    #e88830;
+  --cop-lo:    #803008;
+  --cop-glo:   rgba(200,96,16,.45);
+
+  /* Amber — Screen-Content */
+  --amb:       #e88020;
+  --amb-hi:    #f8a040;
+  --amb-lo:    #a04808;
+  --amb-glo:   rgba(232,128,32,.4);
+
+  /* Teal — Biolumineszenz, Ambient */
+  --bio:       #14c8a8;
+  --bio-hi:    #28e8c0;
+  --bio-lo:    #086858;
+  --bio-glo:   rgba(20,200,168,.3);
+
+  /* Screen */
+  --scr:       #060402;
+  --scr2:      #0a0806;
+
+  /* Kritisch */
+  --crit:      #d82808;
+  --crit-glo:  rgba(216,40,8,.4);
+
+  --txt-lbl:   rgba(232,128,32,.45);
+  --txt-dim:   rgba(232,128,32,.1);
+
+  --amber:    var(--amb);
+  --amber-hi: var(--amb-hi);
+  --red:      var(--crit);
+  --dim:      var(--txt-dim);
+  --lbl:      var(--txt-lbl);
+  --mute:     rgba(232,128,32,.22);
+}
+
+* { margin:0; padding:0; box-sizing:border-box }
+html, body { height:100%; overflow:hidden }
+body {
+  font-family:'Rajdhani',sans-serif; color:var(--txt-lbl);
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:18px;
+  -webkit-font-smoothing:antialiased;
+  background: radial-gradient(ellipse 90% 75% at 50% 45%,
+    #120c06 0%, #080604 55%, #040302 100%);
+}
+body::before { display:none }
+
+/* ════════════════════════════════════════════════════════
+   CHASSIS — organisch, Rippenstruktur wie Bild 3/4
+   Die Banu bauen aus lebenden Materialien
+   ════════════════════════════════════════════════════════ */
+.console {
+  position:relative;
+  width:min(1240px,100%); aspect-ratio:16/10;
+  /* Leicht asymmetrische Ecken — organisch, nicht technisch */
+  border-radius:6px 10px 6px 12px;
+  padding:0; display:flex; flex-direction:column; overflow:hidden;
+
+  background: linear-gradient(158deg,
+    var(--blk-hi) 0%, var(--blk) 20%, #080604 80%, var(--blk-lo) 100%);
+
+  /* Doppelrahmen: Kupfer aussen, dunkel innen */
+  border:2px solid rgba(200,96,16,.5);
+  outline:1px solid rgba(0,0,0,.9);
+  box-shadow:
+    inset 0 0 0 1px rgba(200,96,16,.12),
+    inset 0 0 60px rgba(0,0,0,.9),
+    0 0 0 3px rgba(0,0,0,.8),
+    0 0 20px rgba(200,96,16,.1),
+    0 30px 80px rgba(0,0,0,.99);
+
+  animation: banuBoot 2s ease-out;
+}
+
+/* ORGANISCHE RIPPENSTRUKTUR — wie Chitinpanzer in Bild 3/4 */
+.console::before {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background:
+    /* Horizontale Rippen */
+    repeating-linear-gradient(
+      180deg,
+      transparent 0px, transparent 22px,
+      rgba(200,96,16,.022) 22px, rgba(200,96,16,.022) 23px,
+      transparent 23px, transparent 44px
+    ),
+    /* Diagonale Struktur */
+    repeating-linear-gradient(
+      115deg,
+      transparent 0px, transparent 40px,
+      rgba(20,200,168,.01) 40px, rgba(20,200,168,.01) 41px
+    );
+  border-radius:inherit;
+}
+
+/* TEAL BIO-AMBIENT von unten — wie Bild 2/4 */
+.console::after {
+  content:""; position:absolute;
+  bottom:0; left:0; right:0; height:40%;
+  pointer-events:none; z-index:1;
+  background: linear-gradient(to top,
+    rgba(20,200,168,.06) 0%,
+    rgba(20,200,168,.02) 50%,
+    transparent 100%);
+}
+
+/* ════ ECKMODULE — WEG ════ */
+.mount { display:none }
+
+/* AMBER-PUNKTLICHTER links/rechts — wie in Bild 2/4 */
+/* Simuliert via Topstrip-Pseudo */
+
+.tx, .tx.pol { display:none }
+.hazard      { display:none }
+.vent        { display:none }
+.keys        { display:none }
+
+/* ════ STRIPS ════ */
+.strip { background:transparent; box-shadow:none }
+.topstrip { border-bottom:1px solid rgba(200,96,16,.18) }
+.botstrip  { border-top:1px solid rgba(200,96,16,.12) }
+
+/* ════ KOPF ════ */
+.topstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:14px; padding:11px 46px;
+  position:relative;
+}
+
+/* Amber Punkt-Lichter links und rechts im Topstrip */
+.topstrip::before,
+.topstrip::after {
+  content:""; position:absolute;
+  width:6px; height:6px; border-radius:50%;
+  background:var(--amb);
+  box-shadow:0 0 8px var(--amb-glo), 0 0 16px rgba(232,128,32,.2);
+  top:50%; transform:translateY(-50%);
+}
+.topstrip::before { left:18px }
+.topstrip::after  { right:18px }
+
+.ident {
+  order:1; justify-self:start;
+  padding:4px 10px;
+  border:1px solid rgba(200,96,16,.3);
+  /* Leicht oktagonal angedeutet */
+  border-radius:2px 8px 2px 8px;
+  background:rgba(10,6,2,.6);
+  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
+}
+.ident .a {
+  font-family:'Cinzel',serif; font-weight:400;
+  font-size:clamp(10px,1.3vw,15px); letter-spacing:.18em;
+  color:rgba(232,128,32,.85); text-transform:uppercase;
+  text-shadow:0 0 10px var(--amb-glo);
+}
+.ident .b {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.7vw,8px); letter-spacing:3px;
+  color:rgba(200,96,16,.45); margin-top:2px;
+}
+
+.embed-nav { order:2; display:flex; gap:12px; justify-self:center }
+.embed-btn {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.78vw,9px); letter-spacing:2px;
+  color:rgba(232,128,32,.3);
+  background:transparent; border:none;
+  border-bottom:1px solid rgba(200,96,16,.2); padding:3px 6px;
+  cursor:pointer; display:flex; align-items:center; gap:5px; user-select:none;
+  transition:all .2s;
+}
+.embed-btn:hover { color:var(--amb-hi); border-bottom-color:rgba(200,96,16,.6) }
+.embed-btn .ar { opacity:.4 }
+
+.brand { order:3; text-align:right; justify-self:end }
+.brand .w1 {
+  font-family:'Cinzel',serif; font-weight:400;
+  font-size:clamp(14px,1.9vw,24px); letter-spacing:.3em;
+  color:rgba(200,96,16,.07); line-height:1; text-transform:uppercase;
+}
+.brand .w2 {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(5px,.62vw,7px); letter-spacing:4px;
+  color:rgba(200,96,16,.05); margin-top:3px;
+}
+
+/* ════ KERN ════ */
+.core {
+  position:relative; z-index:3; flex:1; min-height:0;
+  padding:10px 14px; display:grid; grid-template-columns:1fr;
+  background:transparent;
+}
+
+/* ════════════════════════════════════════════════════════
+   MFD BEZEL — Oktagon via clip-path
+   Inspiriert von den hex-Panel-Formen in Bild 1/2/4
+   Doppellinien-Struktur: kupfer aussen, dunkler innen
+   ════════════════════════════════════════════════════════ */
+.module {
+  position:relative;
+  /* Oktagonale Form — wie die MFD-Rahmen im Merchantman */
+  clip-path: polygon(
+    16px 0%, calc(100% - 16px) 0%,
+    100% 16px, 100% calc(100% - 16px),
+    calc(100% - 16px) 100%, 16px 100%,
+    0% calc(100% - 16px), 0% 16px
+  );
+  padding:3px;
+  background:linear-gradient(135deg,
+    var(--cop-hi) 0%,
+    var(--cop)    20%,
+    var(--cop-lo) 45%,
+    var(--cop)    70%,
+    var(--cop-hi) 100%);
+  box-shadow: 0 0 30px rgba(200,96,16,.2);
+  animation: banuCopperPulse 12s ease-in-out infinite;
+}
+
+/* Innerer dunkler Rand */
+.module::before {
+  content:""; position:absolute; inset:3px; z-index:0; pointer-events:none;
+  clip-path: polygon(
+    13px 0%, calc(100% - 13px) 0%,
+    100% 13px, 100% calc(100% - 13px),
+    calc(100% - 13px) 100%, 13px 100%,
+    0% calc(100% - 13px), 0% 13px
+  );
+  background:rgba(8,4,2,.9);
+  box-shadow:inset 0 0 20px rgba(0,0,0,.8);
+}
+
+/* Kupfer-Lichtlinie oben am Bezel */
+.module::after {
+  content:""; position:absolute;
+  top:3px; left:20%; right:20%; height:1px; z-index:2; pointer-events:none;
+  background:linear-gradient(90deg, transparent, var(--amb), transparent);
+  opacity:.5;
+}
+
+/* ════ SCREEN ════ */
+.screen {
+  position:relative; height:100%; z-index:1;
+  /* Passend zum oktagonalen clip-path */
+  clip-path: polygon(
+    13px 0%, calc(100% - 13px) 0%,
+    100% 13px, 100% calc(100% - 13px),
+    calc(100% - 13px) 100%, 13px 100%,
+    0% calc(100% - 13px), 0% 13px
+  );
+  overflow:hidden; display:flex; flex-direction:column;
+  padding:clamp(14px,2vw,26px) clamp(18px,2.6vw,36px) clamp(10px,1.4vw,16px);
+
+  /* Flach dunkel — kein heller Bogen */
+  background: linear-gradient(180deg, #0c0804 0%, var(--scr) 35%, #040200 100%);
+
+  box-shadow:inset 0 0 50px rgba(0,0,0,.98);
+  animation: banuFlicker 20s ease-in-out infinite;
+}
+
+/* Bio-Teal-Schimmer von unten im Screen */
+.screen::after {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background:
+    /* Diagonales Hex-Raster */
+    repeating-linear-gradient(60deg,  transparent 0px, transparent 20px, rgba(232,128,32,.02) 20px, rgba(232,128,32,.02) 21px),
+    repeating-linear-gradient(-60deg, transparent 0px, transparent 20px, rgba(232,128,32,.02) 20px, rgba(232,128,32,.02) 21px),
+    /* Teal Ambient von unten */
+    linear-gradient(to top, rgba(20,200,168,.04) 0%, transparent 40%);
+}
+.screen::before { display:none }
+
+.scode {
+  position:absolute; right:18px; bottom:8px; z-index:8;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(200,96,16,.2);
+}
+
+/* ════ STATUS-GRID ════ */
+.grid {
+  position:relative; z-index:4; flex:1;
+  display:grid; grid-template-columns:1fr 1fr;
+  column-gap:clamp(24px,3.5vw,48px); min-height:0;
+}
+.col   { display:flex; flex-direction:column; min-height:0; position:relative }
+.col.r { padding-left:0; border-left:none }
+.col.r::before {
+  content:""; position:absolute; top:0; bottom:0;
+  width:1px; left:calc(-1 * clamp(12px,1.75vw,24px));
+  background:linear-gradient(to bottom,
+    transparent 0%,
+    rgba(200,96,16,.18) 15%,
+    rgba(232,128,32,.28) 50%,
+    rgba(200,96,16,.18) 85%,
+    transparent 100%);
+  pointer-events:none; z-index:2;
+}
+
+.ghead {
+  font-family:'Cinzel',serif; font-weight:400;
+  font-size:clamp(7px,.82vw,9px); letter-spacing:.22em;
+  color:rgba(200,96,16,.65);
+  padding:0 0 5px; margin-bottom:9px;
+  border-bottom:1px solid rgba(200,96,16,.22);
+  align-self:stretch; text-transform:uppercase;
+}
+.ghead:not(:first-child) { margin-top:clamp(9px,1.5vw,17px) }
+
+.rows { display:flex; flex-direction:column; justify-content:space-evenly; flex:1; min-height:0 }
+.row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px; padding:clamp(2px,.4vw,5px) 0;
+  border-bottom:1px solid rgba(232,128,32,.07);
+  transition:background .2s;
+}
+.row:hover { background:rgba(232,128,32,.04) }
+.row:last-child { border-bottom:none }
+.row:has(.st.red) { animation:banuAlarm 2s ease-in-out infinite }
+.lhs { display:flex; align-items:center; gap:8px; min-width:0 }
+
+/* LEDs — kleine Amber-Punkte wie im Cockpit */
+.led {
+  width:5px; height:5px; border-radius:50%; flex:none;
+  background:rgba(232,128,32,.1);
+  border:1px solid rgba(200,96,16,.25);
+  transition:background .2s, box-shadow .2s;
+}
+.led.on  { background:var(--crit); border-color:rgba(216,40,8,.6);  box-shadow:0 0 6px var(--crit-glo) }
+.led.lit { background:var(--amb);  border-color:rgba(232,128,32,.7); box-shadow:0 0 6px var(--amb-glo) }
+
+.lbl {
+  font-family:'Rajdhani',sans-serif; font-weight:600;
+  font-size:clamp(13px,1.75vw,22px); letter-spacing:.05em;
+  color:rgba(232,128,32,.28); text-transform:uppercase;
+}
+.st {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(10px,1.22vw,15px); letter-spacing:2px;
+  text-align:right; color:var(--txt-dim); transition:color .2s;
+}
+.st.amber { color:var(--amb); text-shadow:0 0 10px var(--amb-glo) }
+[data-sys="eng"] .st.amber { animation:none }
+.st.red   { color:var(--crit); text-shadow:0 0 8px var(--crit-glo); animation:banuWarn 1.8s ease-in-out infinite }
+.st.dim   { color:var(--txt-dim); animation:none }
+.row:has(.st.amber) .lbl { color:rgba(232,128,32,.58) }
+.row:has(.st.dim)   .lbl { color:rgba(232,128,32,.13) }
+.row:has(.st.red)   .lbl { color:rgba(216,80,40,.52) }
+
+/* ════ STATUS-LEISTE ════ */
+.statusbar {
+  position:relative; z-index:5; display:flex; align-items:center;
+  margin-top:clamp(9px,1.4vw,16px);
+}
+.statusbar::before, .statusbar::after {
+  content:""; flex:1; height:1px;
+  background:linear-gradient(to right,
+    transparent, rgba(200,96,16,.25), rgba(232,128,32,.18), transparent);
+}
+.nav {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(9px,1.1vw,12px); color:rgba(232,128,32,.32);
+  cursor:pointer; padding:0 10px; user-select:none; transition:color .2s;
+}
+.nav:hover { color:var(--amb-hi) }
+.nav:active { transform:scale(.88) }
+.stitle {
+  padding:0 18px; flex:none;
+  font-family:'Cinzel',serif; font-weight:400;
+  font-size:clamp(9px,1.1vw,13px); letter-spacing:.42em;
+  color:rgba(200,96,16,.5); text-transform:uppercase;
+  text-shadow:0 0 8px rgba(200,96,16,.2);
+}
+.cstat {
+  font-family:'Share Tech Mono',monospace; font-size:clamp(6px,.78vw,8px);
+  letter-spacing:1px; color:rgba(232,128,32,.28);
+  display:flex; align-items:center; gap:5px;
+}
+.cled      { width:5px; height:5px; border-radius:50%; background:rgba(232,128,32,.1) }
+.cled.live { background:var(--bio); box-shadow:0 0 5px var(--bio-glo) }
+.cled.off  { background:rgba(216,40,8,.4) }
+
+/* ════ FUSS ════ */
+.botstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:14px; padding:10px 46px 12px;
+  position:relative;
+}
+
+/* Bio-Punkt-Lichter im Botstrip */
+.botstrip::before,
+.botstrip::after {
+  content:""; position:absolute;
+  width:5px; height:5px; border-radius:50%;
+  background:var(--bio-lo);
+  box-shadow:0 0 5px var(--bio-glo);
+  top:50%; transform:translateY(-50%);
+}
+.botstrip::before { left:18px }
+.botstrip::after  { right:18px }
+
+.servicelog {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.72vw,7px); letter-spacing:1.5px; line-height:1.6;
+  color:rgba(200,96,16,.22);
+}
+.servicelog .id { color:rgba(200,96,16,.42); font-weight:bold }
+.servicelog b   { color:rgba(232,128,32,.28) }
+.servicelog .r  { color:rgba(20,200,168,.35) }
+.codes {
+  justify-self:center; display:flex; gap:12px;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(200,96,16,.16);
+}
+.bright { justify-self:end; display:flex; align-items:center; gap:10px }
+.pages  { display:flex; gap:5px }
+.pg {
+  width:6px; height:6px;
+  /* Oktagonal auch die Paginierung */
+  clip-path: polygon(25% 0%,75% 0%,100% 25%,100% 75%,75% 100%,25% 100%,0% 75%,0% 25%);
+  background:rgba(200,96,16,.15);
+}
+.pg.on { background:var(--cop); box-shadow:0 0 5px var(--cop-glo) }
+
+/* ════ ANIMATIONEN ════ */
+@keyframes banuCopperPulse {
+  0%,100% { filter:brightness(1) saturate(1)    }
+  30%     { filter:brightness(1.1) saturate(1.1) }
+  65%     { filter:brightness(.92) saturate(.95) }
+}
+@keyframes banuWarn {
+  0%,100% { opacity:.6;  filter:brightness(1) }
+  50%     { opacity:1;   filter:brightness(1.35) }
+}
+@keyframes banuAlarm {
+  0%,100% { box-shadow:none }
+  50%     { box-shadow:inset 4px 0 10px rgba(216,40,8,.22) }
+}
+@keyframes banuFlicker {
+  0%,90%,100% { opacity:1    }
+  91%         { opacity:.94  }
+  92%         { opacity:1    }
+  96%         { opacity:.88  }
+  97%         { opacity:.96  }
+  99%         { opacity:.92  }
+}
+@keyframes banuBoot {
+  0%   { opacity:0; filter:brightness(0) sepia(1) blur(4px) }
+  20%  { opacity:.3; filter:brightness(.4) sepia(.6) blur(2px) }
+  55%  { opacity:.85; filter:brightness(1.08) blur(0) }
+  75%  { filter:brightness(.96) }
+  100% { opacity:1; filter:none }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .console,.module,.screen,.st.red,.row:has(.st.red) { animation:none !important }
+}
+@media (max-width:900px){
+  .console { aspect-ratio:auto; min-height:calc(100vh - 28px) }
+  .lbl { font-size:clamp(13px,3.2vw,20px) }
+  .st  { font-size:clamp(10px,2vw,13px) }
+  /* clip-path Oktagon bei kleinen Screens vereinfachen */
+  .module, .screen {
+    clip-path: polygon(8px 0%,calc(100% - 8px) 0%,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0% calc(100% - 8px),0% 8px);
+  }
+}
+@media (max-aspect-ratio:1/1){
+  .grid { grid-template-columns:1fr }
+  .col.r::before { display:none }
+  .col.r { padding-top:10px; margin-top:12px; border-top:1px solid rgba(200,96,16,.15) }
+  .ident .b, .brand .w2 { display:none }
+}
+@media (max-width:520px){
+  .topstrip { padding:9px 14px }
+  .embed-nav, .brand { display:none }
+  .stitle { letter-spacing:.22em }
+  .screen { padding:12px 14px 9px }
+  .grid { column-gap:16px }
+  .module, .screen { clip-path:none; border-radius:4px }
+}

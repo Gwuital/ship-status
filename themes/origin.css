@@ -1,0 +1,377 @@
+/* ============================================================================
+   THEME: ORIGIN JUMPWORKS — M50 / 300-Series MFD
+   Look-Layer fuer ship-status. HTML-Skelett + JS sind hersteller-neutral.
+   Fan-made / inoffiziell - keine Verbindung zu Cloud Imperium Games.
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500&display=swap');
+
+:root {
+  --shell:     #b8bcc4;
+  --shell-hi:  #cacdd4;
+  --shell-lo:  #a4a8b0;
+  --seam:      #909498;
+
+  --red-acc:   #e02828;
+  --red-hi:    #f04040;
+
+  --ice:       #4dd8e8;
+  --ice-hi:    #7aeaf6;
+  --ice-lo:    #1a8898;
+  --ice-glo:   rgba(77,216,232,.25);
+
+  --scr:       #040810;
+  --scr2:      #060c18;
+
+  --act:       #6ee4f0;
+  --crit:      #e03030;
+  --crit-glo:  rgba(224,48,48,.25);
+
+  --txt-lbl:   rgba(77,216,232,.5);
+  --txt-dim:   rgba(77,216,232,.1);
+  --txt-mute:  rgba(77,216,232,.28);
+
+  /* Text auf Silber-Chassis — dunkel genug um lesbar zu sein */
+  --on-silver:      #2a2c30;
+  --on-silver-mute: #5a5e64;
+  --on-silver-dim:  #8a8e94;
+
+  --amber:    var(--act);
+  --amber-hi: var(--ice-hi);
+  --red:      var(--crit);
+  --dim:      var(--txt-dim);
+  --lbl:      var(--txt-lbl);
+  --mute:     var(--txt-mute);
+}
+
+* { margin:0; padding:0; box-sizing:border-box }
+html, body { height:100%; overflow:hidden }
+body {
+  font-family:'Rajdhani',sans-serif; color:var(--txt-lbl);
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:20px;
+  -webkit-font-smoothing:antialiased;
+  background: radial-gradient(ellipse 80% 65% at 50% 40%, #0a0c10 0%, #060709 55%, #030405 100%);
+}
+body::before { display:none }
+
+/* ════ CHASSIS — Silber ════ */
+.console {
+  position:relative;
+  width:min(1240px,100%); aspect-ratio:16/10;
+  border-radius:16px; padding:0;
+  display:flex; flex-direction:column; overflow:hidden;
+
+  background: linear-gradient(158deg,
+    var(--shell-hi) 0%,
+    var(--shell)    45%,
+    var(--shell-lo) 100%);
+
+  border:1px solid var(--seam);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.5),
+    inset 0 -2px 6px rgba(0,0,0,.18),
+    0 0 0 1px rgba(120,124,130,.4),
+    0 40px 100px rgba(0,0,0,.9);
+
+  animation: origBoot 1.2s ease-out;
+}
+
+/* Metallglanz */
+.console::before {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background: linear-gradient(170deg,
+    rgba(255,255,255,.2) 0%,
+    rgba(255,255,255,.06) 25%,
+    transparent 52%
+  );
+  border-radius:16px;
+}
+
+/* Roter Akzentstreifen — kein box-shadow (verursacht Wellen-Artefakt) */
+.console::after {
+  content:""; position:absolute;
+  top:0; left:0; right:0; height:3px;
+  z-index:10; pointer-events:none;
+  background: linear-gradient(90deg,
+    transparent 2%,
+    var(--red-acc) 12%,
+    var(--red-hi)  50%,
+    var(--red-acc) 88%,
+    transparent 98%
+  );
+  /* Kein box-shadow — das verursachte die Wellen */
+}
+
+.mount { display:none }
+.tx, .tx.pol { display:none }
+.hazard      { display:none }
+.vent        { display:none }
+.keys        { display:none }
+
+/* ════ STRIPS — Silber explizit, kein transparent ════ */
+.strip {
+  background: linear-gradient(180deg, var(--shell-hi), var(--shell) 50%, var(--shell-lo));
+  box-shadow:none;
+}
+.topstrip { border-bottom:1px solid rgba(0,0,0,.1) }
+.botstrip  { border-top:1px solid rgba(0,0,0,.1) }
+
+/* ════ KOPF ════ */
+.topstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:14px; padding:11px 22px 10px;
+}
+
+.ident {
+  order:1; justify-self:start;
+  padding:4px 0 4px 10px;
+  border-left:2px solid var(--red-acc);
+}
+.ident .a {
+  font-family:'Exo 2',sans-serif; font-weight:400;
+  font-size:clamp(12px,1.6vw,18px); letter-spacing:.12em;
+  color:var(--on-silver); text-transform:uppercase;
+}
+.ident .b {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.7vw,8px); letter-spacing:3px;
+  color:var(--on-silver-mute); margin-top:2px;
+}
+
+.embed-nav { order:2; display:flex; gap:10px; justify-self:center }
+.embed-btn {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(7px,.8vw,9px); letter-spacing:2px;
+  color:var(--on-silver-mute);
+  background:transparent; border:none;
+  border-bottom:1px solid transparent; padding:3px 0;
+  cursor:pointer; display:flex; align-items:center; gap:5px; user-select:none;
+  transition:all .18s;
+}
+.embed-btn:hover { color:var(--on-silver); border-bottom-color:var(--red-acc) }
+.embed-btn .ar { opacity:.4 }
+
+.brand { order:3; text-align:right; justify-self:end }
+.brand .w1 {
+  font-family:'Exo 2',sans-serif; font-weight:300;
+  font-size:clamp(15px,2vw,24px); letter-spacing:.22em;
+  color:var(--on-silver-dim); line-height:1; text-transform:uppercase;
+}
+.brand .w2 {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.68vw,8px); letter-spacing:4px;
+  color:var(--on-silver-dim); margin-top:3px;
+}
+
+/* ════ KERN ════ */
+.core {
+  position:relative; z-index:3; flex:1; min-height:0;
+  padding:10px 14px;
+  display:grid; grid-template-columns:1fr;
+  background:transparent;
+}
+
+/* MFD-Bezel — roter Rahmen */
+.module {
+  position:relative; border-radius:10px; padding:5px;
+  background:linear-gradient(145deg,
+    rgba(224,40,40,.7) 0%,
+    rgba(180,28,28,.5) 50%,
+    rgba(224,40,40,.6) 100%);
+  box-shadow:
+    0 4px 22px rgba(0,0,0,.6),
+    0 1px 4px rgba(0,0,0,.3);
+}
+
+/* ════ SCREEN ════ */
+.screen {
+  position:relative; height:100%;
+  border-radius:7px; overflow:hidden;
+  display:flex; flex-direction:column;
+  padding:clamp(14px,2vw,26px) clamp(18px,2.6vw,36px) clamp(10px,1.4vw,16px);
+  background: radial-gradient(130% 95% at 50% 0%,
+    var(--scr2) 0%, var(--scr) 50%, #020508 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(77,216,232,.07),
+    inset 0 0 40px rgba(0,0,0,.9);
+  animation: origFlicker 24s ease-in-out infinite;
+}
+.screen::after {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background:
+    linear-gradient(rgba(77,216,232,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(77,216,232,.018) 1px, transparent 1px);
+  background-size:44px 32px;
+}
+.screen::before { display:none }
+
+.scode {
+  position:absolute; right:10px; bottom:7px; z-index:8;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(77,216,232,.15);
+}
+
+/* ════ STATUS-GRID ════ */
+.grid {
+  position:relative; z-index:4; flex:1;
+  display:grid; grid-template-columns:1fr 1fr;
+  column-gap:clamp(28px,4vw,54px); min-height:0;
+}
+.col   { display:flex; flex-direction:column; min-height:0; position:relative }
+.col.r { padding-left:0; border-left:none }
+.col.r::before {
+  content:""; position:absolute; top:0; bottom:0;
+  width:1px; left:calc(-1 * clamp(14px,2vw,27px));
+  background:linear-gradient(to bottom,
+    transparent 0%, rgba(77,216,232,.14) 20%,
+    rgba(77,216,232,.14) 80%, transparent 100%);
+  pointer-events:none; z-index:2;
+}
+
+.ghead {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(7px,.8vw,9px); letter-spacing:.28em;
+  color:rgba(77,216,232,.5);
+  padding:0 0 5px; margin-bottom:9px;
+  border-bottom:1px solid rgba(77,216,232,.18);
+  align-self:stretch;
+}
+.ghead:not(:first-child) { margin-top:clamp(9px,1.5vw,17px) }
+
+.rows { display:flex; flex-direction:column; justify-content:space-evenly; flex:1; min-height:0 }
+.row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px; padding:clamp(2px,.4vw,5px) 0;
+  border-bottom:1px solid rgba(77,216,232,.05);
+  transition:background .18s;
+}
+.row:hover { background:rgba(77,216,232,.03) }
+.row:last-child { border-bottom:none }
+.row:has(.st.red) { animation:origAlarm 2s ease-in-out infinite }
+.lhs { display:flex; align-items:center; gap:8px; min-width:0 }
+
+.led {
+  width:5px; height:5px; border-radius:50%; flex:none;
+  background:rgba(77,216,232,.1);
+  transition:background .18s, box-shadow .18s;
+}
+.led.on  { background:var(--crit); box-shadow:0 0 5px var(--crit-glo) }
+.led.lit { background:var(--ice);  box-shadow:0 0 5px var(--ice-glo) }
+
+.lbl {
+  font-family:'Rajdhani',sans-serif;
+  font-weight:500; font-size:clamp(13px,1.75vw,22px);
+  letter-spacing:.05em; color:rgba(77,216,232,.28);
+}
+.st {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(10px,1.22vw,15px); letter-spacing:2px;
+  text-align:right; color:var(--txt-dim);
+  transition:color .18s;
+}
+.st.amber { color:var(--act); text-shadow:0 0 8px var(--ice-glo) }
+[data-sys="eng"] .st.amber { animation:none }
+.st.red   { color:var(--crit); animation:origWarn 1.8s ease-in-out infinite }
+.st.dim   { color:var(--txt-dim); animation:none }
+
+.row:has(.st.amber) .lbl { color:rgba(77,216,232,.55) }
+.row:has(.st.dim)   .lbl { color:rgba(77,216,232,.14) }
+.row:has(.st.red)   .lbl { color:rgba(220,100,100,.5) }
+
+/* ════ STATUS-LEISTE ════ */
+.statusbar {
+  position:relative; z-index:5;
+  display:flex; align-items:center;
+  margin-top:clamp(9px,1.4vw,16px);
+}
+.statusbar::before, .statusbar::after {
+  content:""; flex:1; height:1px;
+  background:linear-gradient(to right, transparent, rgba(77,216,232,.16), transparent);
+}
+.nav {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(9px,1.1vw,12px); color:rgba(77,216,232,.3);
+  cursor:pointer; padding:0 8px; user-select:none; transition:color .15s;
+}
+.nav:hover { color:var(--ice) }
+.nav:active { transform:scale(.88) }
+.stitle {
+  padding:0 16px; flex:none;
+  font-family:'Exo 2',sans-serif; font-weight:300;
+  font-size:clamp(9px,1.1vw,13px); letter-spacing:.45em;
+  color:rgba(77,216,232,.45); text-transform:uppercase;
+}
+.cstat {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.78vw,8px); letter-spacing:1px;
+  color:rgba(77,216,232,.28);
+  display:flex; align-items:center; gap:5px;
+}
+.cled      { width:5px; height:5px; border-radius:50%; background:rgba(77,216,232,.12) }
+.cled.live { background:var(--ice); box-shadow:0 0 5px var(--ice-glo) }
+.cled.off  { background:rgba(224,48,48,.4) }
+
+/* ════ FUSS — Text auf Silber lesbar ════ */
+.botstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:14px; padding:9px 22px 11px;
+}
+.servicelog {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.72vw,7px); letter-spacing:1.5px; line-height:1.6;
+  color:var(--on-silver-mute);
+}
+.servicelog .id { color:var(--on-silver); font-weight:bold }
+.servicelog b   { color:var(--on-silver-mute) }
+.servicelog .r  { color:rgba(180,50,50,.7) }
+.codes {
+  justify-self:center; display:flex; gap:12px;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:var(--on-silver-dim);
+}
+.bright { justify-self:end; display:flex; align-items:center; gap:12px }
+.pages { display:flex; gap:5px }
+.pg     { width:6px; height:6px; border-radius:50%; background:rgba(0,0,0,.15) }
+.pg.on  { background:var(--red-acc); box-shadow:0 0 4px rgba(224,40,40,.4) }
+
+/* ════ ANIMATIONEN ════ */
+@keyframes origWarn {
+  0%, 100% { opacity:.65 }
+  50%       { opacity:1   }
+}
+@keyframes origAlarm {
+  0%, 100% { box-shadow:none }
+  50%       { box-shadow:inset 2px 0 0 rgba(224,48,48,.2) }
+}
+@keyframes origFlicker {
+  0%, 98%, 100% { opacity:1   }
+  99%           { opacity:.97 }
+}
+@keyframes origBoot {
+  0%   { opacity:0; filter:brightness(0) }
+  50%  { opacity:.7; filter:brightness(1.04) }
+  100% { opacity:1; filter:none }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .console, .screen, .st.red, .row:has(.st.red) { animation:none !important }
+}
+
+@media (max-width:900px){
+  .console { aspect-ratio:auto; min-height:calc(100vh - 28px) }
+  .lbl { font-size:clamp(13px,3.2vw,20px) }
+  .st  { font-size:clamp(10px,2vw,13px) }
+}
+@media (max-aspect-ratio:1/1){
+  .grid { grid-template-columns:1fr }
+  .col.r::before { display:none }
+  .col.r { padding-top:10px; margin-top:12px; border-top:1px solid rgba(77,216,232,.1) }
+  .ident .b, .brand .w2 { display:none }
+}
+@media (max-width:520px){
+  .topstrip { padding:9px 14px }
+  .embed-nav, .brand { display:none }
+  .stitle { letter-spacing:.22em }
+  .screen { padding:12px 14px 9px }
+  .grid { column-gap:20px }
+}

@@ -1,0 +1,321 @@
+/* ============================================================================
+   THEME: CONSOLIDATED OUTLAND — Mustang / Pioneer MFD
+   Look-Layer fuer ship-status. HTML-Skelett + JS sind hersteller-neutral.
+   Fan-made / inoffiziell - keine Verbindung zu Cloud Imperium Games.
+
+   Identitaet: Design fuer jedermann.
+   Dunkel-Navy-Blaugrau Chassis. Orange Akzentstreifen. Teal Display.
+   Organisch, abgerundet — Mustang-DNA.
+
+   Origin  = Hell-Silber + Rot (Luxus)
+   CNOU    = Dunkel-Blaugrau + Orange (zugaenglich, sportlich)
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Nunito:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Chassis — dunkles Navy-Blaugrau, klar verschieden von Origin */
+  --sil:       #2a3540;
+  --sil-hi:    #364450;
+  --sil-lo:    #1e2830;
+  --seam:      #141e28;
+
+  --org:       #e87818;
+  --org-hi:    #f09040;
+  --org-lo:    #c05808;
+  --org-glo:   rgba(232,120,24,.4);
+
+  --tl:        #20c8c0;
+  --tl-hi:     #48e0d8;
+  --tl-lo:     #108880;
+  --tl-glo:    rgba(32,200,192,.25);
+
+  --scr:       #04080c;
+  --scr2:      #060c10;
+
+  --act:       #38d8d0;
+  --crit:      #e03020;
+  --crit-glo:  rgba(224,48,32,.28);
+
+  /* Text auf dunklem Chassis */
+  --on-dark:   #e0e8f0;
+  --on-dark-m: #8aa0b8;
+  --on-dark-d: #4a6070;
+
+  --amber:    var(--tl);
+  --amber-hi: var(--tl-hi);
+  --red:      var(--crit);
+  --dim:      rgba(32,200,192,.1);
+  --lbl:      rgba(32,200,192,.4);
+  --mute:     rgba(32,200,192,.22);
+}
+
+* { margin:0; padding:0; box-sizing:border-box }
+html, body { height:100%; overflow:hidden }
+body {
+  font-family:'Rajdhani',sans-serif;
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:20px;
+  -webkit-font-smoothing:antialiased;
+  background: radial-gradient(ellipse 80% 65% at 50% 40%, #0a0e14 0%, #060809 55%, #030405 100%);
+}
+body::before { display:none }
+
+/* ════ CHASSIS — dunkles Navy, maximal abgerundet ════ */
+.console {
+  position:relative;
+  width:min(1240px,100%); aspect-ratio:16/10;
+  border-radius:24px; padding:0;
+  display:flex; flex-direction:column; overflow:hidden;
+  background: linear-gradient(155deg,
+    var(--sil-hi) 0%, var(--sil) 45%, var(--sil-lo) 100%);
+  border:1px solid var(--seam);
+  box-shadow:
+    inset 0 1px 0 rgba(120,180,220,.12),
+    inset 0 -2px 8px rgba(0,0,0,.4),
+    0 0 0 1px rgba(0,0,0,.6),
+    0 40px 100px rgba(0,0,0,.95);
+  animation: cnouBoot 1.3s ease-out;
+}
+/* Subtiler Glanz */
+.console::before {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background: linear-gradient(165deg,
+    rgba(120,180,220,.08) 0%, rgba(120,180,220,.03) 25%, transparent 52%);
+  border-radius:24px;
+}
+/* Orange Stripe UNTEN */
+.console::after {
+  content:""; position:absolute;
+  bottom:0; left:0; right:0; height:3px;
+  z-index:10; pointer-events:none;
+  background: linear-gradient(90deg,
+    transparent 3%, var(--org) 12%, var(--org-hi) 50%, var(--org) 88%, transparent 97%);
+  box-shadow: 0 0 10px rgba(232,120,24,.5);
+}
+
+/* ════ ECKMODULE ════ */
+.mount {
+  position:absolute; width:30px; height:30px; z-index:6;
+  background: linear-gradient(135deg, var(--sil-hi), var(--sil-lo));
+  box-shadow: 0 1px 3px rgba(0,0,0,.4), inset 0 1px 0 rgba(120,180,220,.1);
+}
+.mount.tl { top:0; left:0;     border-radius:23px 0 18px 0 }
+.mount.tr { top:0; right:0;    border-radius:0 23px 0 18px }
+.mount.bl { bottom:0; left:0;  border-radius:0 18px 0 23px }
+.mount.br { bottom:0; right:0; border-radius:18px 0 23px 0 }
+.mount::after {
+  content:""; position:absolute; width:5px; height:5px; border-radius:50%;
+  background:var(--org); box-shadow:0 0 5px var(--org-glo); top:6px; left:6px;
+}
+.mount.tr::after { left:auto; right:6px }
+.mount.bl::after { top:auto; bottom:6px }
+.mount.br::after { top:auto; bottom:6px; left:auto; right:6px }
+
+.tx, .tx.pol { display:none }
+.hazard      { display:none }
+.vent        { display:none }
+.keys        { display:none }
+
+/* ════ STRIPS ════ */
+.strip { background:transparent; box-shadow:none }
+.topstrip { border-bottom:1px solid rgba(232,120,24,.15) }
+.botstrip  { border-top:1px solid rgba(232,120,24,.12) }
+
+/* ════ KOPF ════ */
+.topstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:14px; padding:11px 46px 10px;
+}
+.ident {
+  order:1; justify-self:start;
+  padding:4px 0 4px 10px; border-left:2px solid var(--org);
+}
+.ident .a {
+  font-family:'Nunito',sans-serif; font-weight:600;
+  font-size:clamp(11px,1.5vw,17px); letter-spacing:.08em;
+  color:var(--on-dark); text-transform:uppercase;
+}
+.ident .b {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.7vw,8px); letter-spacing:3px;
+  color:var(--on-dark-m); margin-top:2px;
+}
+.embed-nav { order:2; display:flex; gap:10px; justify-self:center }
+.embed-btn {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(7px,.8vw,9px); letter-spacing:2px; color:var(--on-dark-m);
+  background:transparent; border:none; border-bottom:1px solid transparent; padding:3px 0;
+  cursor:pointer; display:flex; align-items:center; gap:5px; user-select:none; transition:all .18s;
+}
+.embed-btn:hover { color:var(--on-dark); border-bottom-color:var(--org) }
+.embed-btn .ar { opacity:.35 }
+.brand { order:3; text-align:right; justify-self:end }
+.brand .w1 {
+  font-family:'Nunito',sans-serif; font-weight:700;
+  font-size:clamp(12px,1.6vw,20px); letter-spacing:.1em;
+  color:rgba(232,120,24,.15); line-height:1; text-transform:uppercase;
+}
+.brand .w2 {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(5px,.65vw,7px); letter-spacing:4px;
+  color:rgba(232,120,24,.1); margin-top:3px;
+}
+
+/* ════ KERN ════ */
+.core {
+  position:relative; z-index:3; flex:1; min-height:0;
+  padding:10px 14px; display:grid; grid-template-columns:1fr;
+  background:rgba(0,0,0,.15);
+}
+.module {
+  position:relative; border-radius:14px; padding:4px;
+  background:linear-gradient(145deg, var(--org-hi) 0%, var(--org) 45%, var(--org-lo) 100%);
+  box-shadow: 0 4px 24px rgba(0,0,0,.6), 0 1px 4px rgba(0,0,0,.4), 0 0 20px rgba(232,120,24,.15);
+}
+.screen {
+  position:relative; height:100%; border-radius:11px; overflow:hidden;
+  display:flex; flex-direction:column;
+  padding:clamp(14px,2vw,26px) clamp(18px,2.6vw,36px) clamp(10px,1.4vw,16px);
+  background: radial-gradient(130% 95% at 50% 0%, var(--scr2) 0%, var(--scr) 50%, #020406 100%);
+  box-shadow:inset 0 0 0 1px rgba(32,200,192,.06), inset 0 0 40px rgba(0,0,0,.9);
+  animation: cnouFlicker 24s ease-in-out infinite;
+}
+.screen::after {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background:
+    linear-gradient(rgba(32,200,192,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(32,200,192,.02) 1px, transparent 1px);
+  background-size:40px 30px;
+}
+.screen::before { display:none }
+.scode {
+  position:absolute; right:10px; bottom:7px; z-index:8;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(32,200,192,.14);
+}
+
+.grid {
+  position:relative; z-index:4; flex:1;
+  display:grid; grid-template-columns:1fr 1fr;
+  column-gap:clamp(28px,4vw,54px); min-height:0;
+}
+.col   { display:flex; flex-direction:column; min-height:0; position:relative }
+.col.r { padding-left:0; border-left:none }
+.col.r::before {
+  content:""; position:absolute; top:0; bottom:0;
+  width:1px; left:calc(-1 * clamp(14px,2vw,27px));
+  background:linear-gradient(to bottom, transparent 0%, rgba(32,200,192,.14) 20%, rgba(32,200,192,.14) 80%, transparent 100%);
+  pointer-events:none; z-index:2;
+}
+.ghead {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(7px,.8vw,9px); letter-spacing:.28em; color:rgba(32,200,192,.5);
+  padding:0 0 5px; margin-bottom:9px;
+  border-bottom:1px solid rgba(32,200,192,.18); align-self:stretch;
+}
+.ghead:not(:first-child) { margin-top:clamp(9px,1.5vw,17px) }
+
+.rows { display:flex; flex-direction:column; justify-content:space-evenly; flex:1; min-height:0 }
+.row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px; padding:clamp(2px,.4vw,5px) 0;
+  border-bottom:1px solid rgba(32,200,192,.05); transition:background .18s;
+}
+.row:hover { background:rgba(32,200,192,.03) }
+.row:last-child { border-bottom:none }
+.row:has(.st.red) { animation:cnouAlarm 2s ease-in-out infinite }
+.lhs { display:flex; align-items:center; gap:8px; min-width:0 }
+.led {
+  width:5px; height:5px; border-radius:50%; flex:none; background:rgba(32,200,192,.1);
+  transition:background .18s, box-shadow .18s;
+}
+.led.on  { background:var(--crit); box-shadow:0 0 5px var(--crit-glo) }
+.led.lit { background:var(--tl);   box-shadow:0 0 5px var(--tl-glo) }
+
+.lbl {
+  font-family:'Rajdhani',sans-serif; font-weight:600;
+  font-size:clamp(13px,1.75vw,22px); letter-spacing:.05em; color:rgba(32,200,192,.28);
+}
+.st {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(10px,1.22vw,15px); letter-spacing:2px;
+  text-align:right; color:rgba(32,200,192,.1); transition:color .18s;
+}
+.st.amber { color:var(--act); text-shadow:0 0 8px var(--tl-glo) }
+[data-sys="eng"] .st.amber { animation:none }
+.st.red   { color:var(--crit); animation:cnouWarn 1.8s ease-in-out infinite }
+.st.dim   { color:rgba(32,200,192,.1); animation:none }
+.row:has(.st.amber) .lbl { color:rgba(32,200,192,.55) }
+.row:has(.st.dim)   .lbl { color:rgba(32,200,192,.14) }
+.row:has(.st.red)   .lbl { color:rgba(220,100,80,.5) }
+
+.statusbar {
+  position:relative; z-index:5; display:flex; align-items:center;
+  margin-top:clamp(9px,1.4vw,16px);
+}
+.statusbar::before, .statusbar::after {
+  content:""; flex:1; height:1px;
+  background:linear-gradient(to right, transparent, rgba(232,120,24,.25), transparent);
+}
+.nav {
+  font-family:'Share Tech Mono',monospace; font-size:clamp(9px,1.1vw,12px);
+  color:rgba(32,200,192,.3); cursor:pointer; padding:0 8px; user-select:none; transition:color .15s;
+}
+.nav:hover { color:var(--tl) }
+.nav:active { transform:scale(.88) }
+.stitle {
+  padding:0 16px; flex:none;
+  font-family:'Nunito',sans-serif; font-weight:500;
+  font-size:clamp(9px,1.1vw,13px); letter-spacing:.35em;
+  color:rgba(32,200,192,.4); text-transform:uppercase;
+}
+.cstat {
+  font-family:'Share Tech Mono',monospace; font-size:clamp(6px,.78vw,8px);
+  letter-spacing:1px; color:rgba(32,200,192,.28); display:flex; align-items:center; gap:5px;
+}
+.cled      { width:5px; height:5px; border-radius:50%; background:rgba(32,200,192,.12) }
+.cled.live { background:var(--tl); box-shadow:0 0 5px var(--tl-glo) }
+.cled.off  { background:rgba(224,48,32,.4) }
+
+/* ════ FUSS — Text auf dunklem Chassis ════ */
+.botstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:14px; padding:9px 46px 11px;
+}
+.servicelog {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.72vw,7px); letter-spacing:1.5px; line-height:1.6; color:var(--on-dark-d);
+}
+.servicelog .id { color:var(--on-dark-m); font-weight:bold }
+.servicelog b   { color:var(--on-dark-d) }
+.servicelog .r  { color:rgba(232,120,24,.5) }
+.codes {
+  justify-self:center; display:flex; gap:12px;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px; color:var(--on-dark-d);
+}
+.bright { justify-self:end; display:flex; align-items:center; gap:12px }
+.pages  { display:flex; gap:5px }
+.pg     { width:6px; height:6px; border-radius:50%; background:rgba(232,120,24,.1) }
+.pg.on  { background:var(--org); box-shadow:0 0 4px var(--org-glo) }
+
+@keyframes cnouWarn  { 0%,100%{opacity:.65} 50%{opacity:1} }
+@keyframes cnouAlarm { 0%,100%{box-shadow:none} 50%{box-shadow:inset 2px 0 0 rgba(224,48,32,.2)} }
+@keyframes cnouFlicker { 0%,98%,100%{opacity:1} 99%{opacity:.97} }
+@keyframes cnouBoot  { 0%{opacity:0;filter:brightness(0)} 55%{opacity:.8;filter:brightness(1.06)} 100%{opacity:1;filter:none} }
+
+@media (prefers-reduced-motion:reduce) {
+  .console,.screen,.st.red,.row:has(.st.red){animation:none !important}
+}
+@media (max-width:900px){
+  .console{aspect-ratio:auto;min-height:calc(100vh - 28px)}
+  .lbl{font-size:clamp(13px,3.2vw,20px)} .st{font-size:clamp(10px,2vw,13px)}
+}
+@media (max-aspect-ratio:1/1){
+  .grid{grid-template-columns:1fr} .col.r::before{display:none}
+  .col.r{padding-top:10px;margin-top:12px;border-top:1px solid rgba(32,200,192,.1)}
+  .ident .b,.brand .w2{display:none}
+}
+@media (max-width:520px){
+  .topstrip{padding:9px 14px} .embed-nav,.brand{display:none}
+  .stitle{letter-spacing:.22em} .screen{padding:12px 14px 9px} .grid{column-gap:20px}
+}

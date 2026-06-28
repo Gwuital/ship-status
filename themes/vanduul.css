@@ -1,0 +1,537 @@
+/* ============================================================================
+   THEME: VANDUUL — Scythe / Glaive / Blade MFD
+   Look-Layer fuer ship-status. HTML-Skelett + JS sind hersteller-neutral.
+   Fan-made / inoffiziell - keine Verbindung zu Cloud Imperium Games.
+
+   Identitaet: Vanduul Kriegsmaschine.
+   Fast-schwarzes organisches Chassis. Alles rot. Gold/Bronze Akzente.
+   Tentakel-Rippen-Textur. Bedrohlich. Kein einziges freundliches Element.
+
+   REFERENZ (Screenshots):
+   - Chassis: Fast-schwarz, organisch, warm dunkel
+   - MFD-Screens: KOMPLETT ROT — einziges Theme mit rotem Screen-Content
+   - Cockpit-Kontur: Schlanke rote Leuchtstreifen
+   - Chassis-Detail: Gold/Bronze Akzente (Bild 2)
+   - Organisch: Tentakel, Rohre, Rippen wie lebende Ruestung
+   - Vanduul-Symbol prominent
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Chassis — fast-schwarz, warm-dunkel wie verbranntes Fleisch */
+  --void:      #0e0604;
+  --void-hi:   #180c08;
+  --void-lo:   #060200;
+  --void-mid:  #120804;
+  --seam:      #300808;
+
+  /* Rot — dominiert ALLES, das ist Vanduul */
+  --red:       #e01010;
+  --red-hi:    #ff2020;
+  --red-lo:    #880808;
+  --red-mid:   #c01010;
+  --red-glo:   rgba(224,16,16,.5);
+
+  /* Gold/Bronze — Chassis-Akzente, Ornamentik */
+  --gld:       #c08020;
+  --gld-hi:    #e0a030;
+  --gld-lo:    #806010;
+  --gld-glo:   rgba(192,128,32,.35);
+
+  /* Screen — dunkelrot, nicht schwarz */
+  --scr:       #0c0200;
+  --scr2:      #140400;
+
+  /* Aktiv — helles Rot */
+  --act:       #ff3020;
+  --act-hi:    #ff5040;
+
+  /* Kritisch — noch heller, blinkend */
+  --crit:      #ff1010;
+  --crit-glo:  rgba(255,16,16,.6);
+
+  /* Text */
+  --txt-lbl:   rgba(224,16,16,.5);
+  --txt-dim:   rgba(224,16,16,.1);
+
+  --amber:    var(--act);
+  --amber-hi: var(--act-hi);
+  --dim:      var(--txt-dim);
+  --lbl:      var(--txt-lbl);
+  --mute:     rgba(224,16,16,.25);
+}
+
+* { margin:0; padding:0; box-sizing:border-box }
+html, body { height:100%; overflow:hidden }
+body {
+  font-family:'Rajdhani',sans-serif; color:var(--txt-lbl);
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:18px;
+  -webkit-font-smoothing:antialiased;
+  /* Blutroter Ambiente-Hintergrund */
+  background: radial-gradient(ellipse 90% 75% at 50% 45%,
+    #1a0404 0%, #0e0202 55%, #060100 100%);
+}
+body::before { display:none }
+
+/* ════════════════════════════════════════════════════════
+   CHASSIS — organisch, bedrohlich, lebende Dunkelheit
+   Asymmetrische Ecken wie Knochenplatten
+   ════════════════════════════════════════════════════════ */
+.console {
+  position:relative;
+  width:min(1240px,100%); aspect-ratio:16/10;
+  /* Knochenartige asymmetrische Form */
+  border-radius:4px 8px 4px 10px;
+  padding:0; display:flex; flex-direction:column; overflow:hidden;
+
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 100%, rgba(180,8,8,.08), transparent 60%),
+    linear-gradient(160deg, var(--void-hi) 0%, var(--void) 20%, var(--void-mid) 80%, var(--void-lo) 100%);
+
+  /* Gold-Aussenrand + roter Innenrand */
+  border:1px solid rgba(192,128,32,.4);
+  box-shadow:
+    inset 0 0 0 1px rgba(224,16,16,.12),
+    inset 0 0 60px rgba(0,0,0,.9),
+    0 0 0 1px rgba(0,0,0,.9),
+    0 0 30px rgba(224,16,16,.08),
+    0 30px 80px rgba(0,0,0,.99);
+
+  animation: vanBoot 2s ease-out;
+}
+
+/* ORGANISCHE TENTAKEL-TEXTUR — wie lebende Ruestung */
+.console::before {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background:
+    /* Schraege Rippen wie Knochen */
+    repeating-linear-gradient(
+      125deg,
+      transparent 0px, transparent 20px,
+      rgba(224,16,16,.022) 20px, rgba(224,16,16,.022) 21px,
+      transparent 21px, transparent 40px
+    ),
+    repeating-linear-gradient(
+      55deg,
+      transparent 0px, transparent 30px,
+      rgba(192,128,32,.012) 30px, rgba(192,128,32,.012) 31px
+    );
+  border-radius:inherit;
+}
+
+/* ROTE LEUCHTSTREIFEN links und rechts — wie Cockpit-Kontur in Bild 1/5 */
+.console::after {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
+  background:
+    /* Linke rote Säule */
+    linear-gradient(to right,
+      rgba(224,16,16,.5) 0px,
+      rgba(224,16,16,.3) 1px,
+      rgba(224,16,16,.1) 4px,
+      rgba(224,16,16,.02) 10px,
+      transparent 22px),
+    /* Rechte rote Säule */
+    linear-gradient(to left,
+      rgba(224,16,16,.5) 0px,
+      rgba(224,16,16,.3) 1px,
+      rgba(224,16,16,.1) 4px,
+      rgba(224,16,16,.02) 10px,
+      transparent 22px),
+    /* Roter Ambient unten */
+    linear-gradient(to top,
+      rgba(224,16,16,.06) 0%,
+      transparent 40%);
+  animation: vanPulse 6s ease-in-out infinite;
+}
+
+/* ════ ECKMODULE — Gold/Bronze, knochenartig ════ */
+.mount {
+  position:absolute; width:36px; height:36px; z-index:6;
+  background:linear-gradient(135deg, #201008, #100604);
+  border:1px solid rgba(192,128,32,.4);
+  box-shadow:inset 0 0 8px rgba(0,0,0,.7), 0 0 4px rgba(192,128,32,.1);
+}
+.mount.tl { top:0; left:0;     border-radius:3px 0 18px 0 }
+.mount.tr { top:0; right:0;    border-radius:0 7px 0 20px }
+.mount.bl { bottom:0; left:0;  border-radius:0 20px 0 3px }
+.mount.br { bottom:0; right:0; border-radius:18px 0 7px 0 }
+
+/* Gold-Ornament */
+.mount::before {
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(135deg, rgba(192,128,32,.15), transparent 60%);
+}
+.mount::after {
+  content:""; position:absolute; width:5px; height:5px; border-radius:50%;
+  background:var(--red-lo); box-shadow:0 0 6px var(--red-glo);
+  top:7px; left:7px;
+}
+.mount.tr::after { left:auto; right:7px }
+.mount.bl::after { top:auto; bottom:7px }
+.mount.br::after { top:auto; bottom:7px; left:auto; right:7px }
+
+.tx, .tx.pol { display:none }
+.hazard      { display:none }
+.vent        { display:none }
+.keys        { display:none }
+
+/* ════ STRIPS ════ */
+.strip { background:transparent; box-shadow:none }
+.topstrip { border-bottom:1px solid rgba(224,16,16,.18) }
+.botstrip  { border-top:1px solid rgba(192,128,32,.12) }
+
+/* ════════════════════════════════════════════════════════
+   KOPF — Vanduul-Aesthetic, kein Komfort
+   ════════════════════════════════════════════════════════ */
+.topstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:14px; padding:11px 46px;
+  position:relative;
+}
+
+/* Rote Linie oben */
+.topstrip::before {
+  content:""; position:absolute;
+  top:0; left:6%; right:6%; height:1px; pointer-events:none;
+  background:linear-gradient(90deg, transparent, var(--red-lo), var(--red), var(--red-lo), transparent);
+  opacity:.6;
+}
+
+.ident {
+  order:1; justify-self:start;
+  padding:4px 10px;
+  border:1px solid rgba(224,16,16,.3);
+  border-radius:2px 6px 2px 6px;
+  background:rgba(224,16,16,.05);
+}
+.ident .a {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(10px,1.3vw,15px); letter-spacing:.18em;
+  color:rgba(255,32,32,.8); text-transform:uppercase;
+  text-shadow:0 0 10px var(--red-glo);
+}
+.ident .b {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.7vw,8px); letter-spacing:3px;
+  color:rgba(192,128,32,.4); margin-top:2px;
+}
+
+.embed-nav { order:2; display:flex; gap:12px; justify-self:center }
+.embed-btn {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.78vw,9px); letter-spacing:2px;
+  color:rgba(224,16,16,.3);
+  background:transparent; border:none;
+  border-bottom:1px solid rgba(224,16,16,.18); padding:3px 4px;
+  cursor:pointer; display:flex; align-items:center; gap:5px; user-select:none;
+  transition:all .2s;
+}
+.embed-btn:hover { color:var(--red-hi); border-bottom-color:rgba(224,16,16,.5) }
+.embed-btn .ar { opacity:.4 }
+
+.brand { order:3; text-align:right; justify-self:end }
+.brand .w1 {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(14px,1.9vw,24px); letter-spacing:.3em;
+  color:rgba(192,128,32,.07); line-height:1; text-transform:uppercase;
+  text-shadow:0 0 16px rgba(192,128,32,.12);
+}
+.brand .w2 {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(5px,.62vw,7px); letter-spacing:4px;
+  color:rgba(224,16,16,.05); margin-top:3px;
+}
+
+/* ════ KERN ════ */
+.core {
+  position:relative; z-index:3; flex:1; min-height:0;
+  padding:10px 14px; display:grid; grid-template-columns:1fr;
+  background:rgba(0,0,0,.3);
+}
+
+/* ════════════════════════════════════════════════════════
+   MFD BEZEL — Dunkelrot/Gold Rahmen
+   Abgeschrägte Ecken wie Knochenplatten
+   ════════════════════════════════════════════════════════ */
+.module {
+  position:relative; padding:3px;
+  border-radius:6px 3px 8px 4px;
+  background:linear-gradient(135deg,
+    var(--gld-hi) 0%,
+    var(--gld)    15%,
+    var(--red-lo) 35%,
+    var(--red-mid) 55%,
+    var(--red-lo) 75%,
+    var(--gld)    90%,
+    var(--gld-hi) 100%);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.8),
+    inset 0 0 10px rgba(0,0,0,.7),
+    0 4px 24px rgba(0,0,0,.8),
+    0 0 40px rgba(224,16,16,.1);
+  animation: vanBezelPulse 8s ease-in-out infinite;
+}
+
+/* ════════════════════════════════════════════════════════
+   SCREEN — KOMPLETT ROT — einziges Theme mit rotem Screen
+   ════════════════════════════════════════════════════════ */
+.screen {
+  position:relative; height:100%;
+  border-radius:4px 2px 6px 3px; overflow:hidden;
+  display:flex; flex-direction:column;
+  padding:clamp(14px,2vw,26px) clamp(18px,2.6vw,36px) clamp(10px,1.4vw,16px);
+
+  /* Dunkelroter Screen — einzigartig */
+  background: radial-gradient(130% 90% at 50% 0%,
+    rgba(40,4,4,.9) 0%, var(--scr2) 30%, var(--scr) 60%, #080100 100%);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(224,16,16,.1),
+    inset 0 0 40px rgba(0,0,0,.95);
+
+  animation: vanFlicker 16s ease-in-out infinite;
+}
+
+/* Organisches Raster — wie Vanduul-Schriftzeichen */
+.screen::after {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background:
+    repeating-linear-gradient(
+      70deg,
+      transparent 0px, transparent 18px,
+      rgba(224,16,16,.025) 18px, rgba(224,16,16,.025) 19px
+    ),
+    repeating-linear-gradient(
+      -70deg,
+      transparent 0px, transparent 18px,
+      rgba(224,16,16,.02) 18px, rgba(224,16,16,.02) 19px
+    );
+}
+
+/* Roter Glimmer oben */
+.screen::before {
+  content:""; position:absolute; top:0; left:0; right:0; height:1px; z-index:6;
+  background:linear-gradient(90deg, transparent 5%, var(--red-lo) 25%, var(--red) 50%, var(--red-lo) 75%, transparent 95%);
+  opacity:.6;
+}
+
+.scode {
+  position:absolute; right:10px; bottom:7px; z-index:8;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(192,128,32,.2);
+}
+
+/* ════ STATUS-GRID ════ */
+.grid {
+  position:relative; z-index:4; flex:1;
+  display:grid; grid-template-columns:1fr 1fr;
+  column-gap:clamp(24px,3.5vw,48px); min-height:0;
+}
+.col   { display:flex; flex-direction:column; min-height:0; position:relative }
+.col.r { padding-left:0; border-left:none }
+.col.r::before {
+  content:""; position:absolute; top:0; bottom:0;
+  width:1px; left:calc(-1 * clamp(12px,1.75vw,24px));
+  background:linear-gradient(to bottom,
+    transparent 0%, rgba(224,16,16,.25) 15%,
+    rgba(224,16,16,.35) 50%, rgba(224,16,16,.25) 85%, transparent 100%);
+  pointer-events:none; z-index:2;
+}
+
+/* Section Headers — rot */
+.ghead {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(7px,.82vw,9px); letter-spacing:.25em;
+  color:rgba(224,16,16,.6);
+  padding:0 0 5px; margin-bottom:9px;
+  border-bottom:1px solid rgba(224,16,16,.25);
+  align-self:stretch; text-transform:uppercase;
+}
+.ghead:not(:first-child) { margin-top:clamp(9px,1.5vw,17px) }
+
+/* Zeilen */
+.rows { display:flex; flex-direction:column; justify-content:space-evenly; flex:1; min-height:0 }
+.row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px; padding:clamp(2px,.4vw,5px) 0;
+  border-bottom:1px solid rgba(224,16,16,.08);
+  transition:background .2s;
+}
+.row:hover { background:rgba(224,16,16,.05) }
+.row:last-child { border-bottom:none }
+.row:has(.st.red) { animation:vanAlarm 1.5s ease-in-out infinite }
+.lhs { display:flex; align-items:center; gap:8px; min-width:0 }
+
+/* LEDs — rote Punkte, alles leuchtet rot */
+.led {
+  width:5px; height:5px; border-radius:50%; flex:none;
+  background:rgba(224,16,16,.15); border:1px solid rgba(224,16,16,.25);
+  transition:background .2s, box-shadow .2s;
+}
+.led.on  { background:var(--crit);  border-color:rgba(255,16,16,.7); box-shadow:0 0 8px var(--crit-glo) }
+.led.lit { background:var(--red);   border-color:rgba(224,16,16,.7); box-shadow:0 0 6px var(--red-glo) }
+
+/* ════ VISUELLE HIERARCHIE ════ */
+.lbl {
+  font-family:'Rajdhani',sans-serif; font-weight:600;
+  font-size:clamp(13px,1.75vw,22px); letter-spacing:.05em;
+  color:rgba(224,16,16,.3); text-transform:uppercase;
+}
+.st {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(10px,1.22vw,15px); letter-spacing:2px;
+  text-align:right; color:var(--txt-dim); transition:color .2s;
+}
+
+/* AKTIV — helles Rot */
+.st.amber {
+  color:var(--act);
+  text-shadow:0 0 8px var(--red-glo);
+}
+[data-sys="eng"] .st.amber { animation:none }
+
+/* KRITISCH — noch heller, schneller */
+.st.red {
+  color:var(--crit);
+  text-shadow:0 0 10px var(--crit-glo);
+  animation:vanWarn 1.2s ease-in-out infinite;
+}
+.st.dim { color:var(--txt-dim); animation:none }
+
+.row:has(.st.amber) .lbl { color:rgba(255,48,32,.6) }
+.row:has(.st.dim)   .lbl { color:rgba(224,16,16,.14) }
+.row:has(.st.red)   .lbl { color:rgba(255,80,60,.7) }
+
+/* ════ STATUS-LEISTE ════ */
+.statusbar {
+  position:relative; z-index:5; display:flex; align-items:center;
+  margin-top:clamp(9px,1.4vw,16px);
+}
+.statusbar::before, .statusbar::after {
+  content:""; flex:1; height:1px;
+  background:linear-gradient(to right, transparent, rgba(224,16,16,.4), rgba(192,128,32,.2), transparent);
+}
+.nav {
+  font-family:'Share Tech Mono',monospace; font-size:clamp(9px,1.1vw,12px);
+  color:rgba(224,16,16,.35); cursor:pointer; padding:0 10px; user-select:none; transition:color .2s;
+}
+.nav:hover { color:var(--red-hi) }
+.nav:active { transform:scale(.88) }
+.stitle {
+  padding:0 18px; flex:none;
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(9px,1.1vw,13px); letter-spacing:.42em;
+  color:rgba(224,16,16,.5); text-transform:uppercase;
+  text-shadow:0 0 8px rgba(224,16,16,.25);
+}
+.cstat {
+  font-family:'Share Tech Mono',monospace; font-size:clamp(6px,.78vw,8px);
+  letter-spacing:1px; color:rgba(224,16,16,.3);
+  display:flex; align-items:center; gap:5px;
+}
+.cled      { width:5px; height:5px; border-radius:50%; background:rgba(224,16,16,.15) }
+.cled.live { background:var(--red); box-shadow:0 0 6px var(--red-glo) }
+.cled.off  { background:rgba(80,8,8,.5) }
+
+/* ════ FUSS ════ */
+.botstrip {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:14px; padding:10px 46px 12px;
+  position:relative;
+}
+/* Gold-Linie unten */
+.botstrip::before {
+  content:""; position:absolute;
+  bottom:0; left:8%; right:8%; height:1px; pointer-events:none;
+  background:linear-gradient(90deg, transparent, var(--gld-lo), transparent);
+  opacity:.4;
+}
+
+.servicelog {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(6px,.72vw,7px); letter-spacing:1.5px; line-height:1.6;
+  color:rgba(224,16,16,.22);
+}
+.servicelog .id { color:rgba(224,16,16,.4); font-weight:bold }
+.servicelog b   { color:rgba(192,128,32,.28) }
+.servicelog .r  { color:rgba(255,32,32,.5) }
+.codes {
+  justify-self:center; display:flex; gap:12px;
+  font-family:'Share Tech Mono',monospace; font-size:7px; letter-spacing:1px;
+  color:rgba(224,16,16,.16);
+}
+.bright { justify-self:end; display:flex; align-items:center; gap:10px }
+.pages  { display:flex; gap:5px }
+.pg {
+  width:6px; height:6px; border-radius:50%;
+  background:rgba(224,16,16,.12); border:1px solid rgba(224,16,16,.2);
+}
+.pg.on { background:var(--red-lo); box-shadow:0 0 6px var(--red-glo) }
+
+/* ════ ANIMATIONEN ════ */
+
+/* Pulsierendes rotes Chassis-Leuchten */
+@keyframes vanPulse {
+  0%,100%{ opacity:.8 }
+  40%    { opacity:1  }
+  70%    { opacity:.65}
+}
+
+/* Bezel-Gradient rotiert langsam — lebendig */
+@keyframes vanBezelPulse {
+  0%,100%{ filter:brightness(1) saturate(1) }
+  30%    { filter:brightness(1.12) saturate(1.15) }
+  65%    { filter:brightness(.9) saturate(.9) }
+}
+
+/* Kritisch — sehr schnell, aggressiv */
+@keyframes vanWarn {
+  0%,100%{ opacity:.5; filter:brightness(1) }
+  50%    { opacity:1;  filter:brightness(1.5) }
+}
+
+/* Alarm-Zeile */
+@keyframes vanAlarm {
+  0%,100%{ box-shadow:none }
+  50%    { box-shadow:inset 5px 0 12px rgba(255,16,16,.3) }
+}
+
+/* Flackern — aggressiver als andere Themes */
+@keyframes vanFlicker {
+  0%,85%,100%{ opacity:1    }
+  86%        { opacity:.88  }
+  87%        { opacity:1    }
+  91%        { opacity:.82  }
+  92%        { opacity:.96  }
+  95%        { opacity:.78  }
+  96%        { opacity:1    }
+  99%        { opacity:.9   }
+}
+
+/* Boot — wie ein Raubtier das die Augen aufmacht */
+@keyframes vanBoot {
+  0%  { opacity:0; filter:brightness(0) saturate(0) blur(4px) }
+  20% { opacity:.3; filter:brightness(.4) saturate(.5) blur(2px) }
+  45% { opacity:.8; filter:brightness(1.4) saturate(1.2) blur(0) }
+  60% { filter:brightness(.85) saturate(1) }
+  80% { filter:brightness(1.05) }
+  100%{ opacity:1; filter:none }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .console,.console::after,.module,.screen,.st.red,.row:has(.st.red){animation:none !important}
+}
+@media (max-width:900px){
+  .console{aspect-ratio:auto;min-height:calc(100vh - 28px)}
+  .lbl{font-size:clamp(13px,3.2vw,20px)} .st{font-size:clamp(10px,2vw,13px)}
+}
+@media (max-aspect-ratio:1/1){
+  .grid{grid-template-columns:1fr} .col.r::before{display:none}
+  .col.r{padding-top:10px;margin-top:12px;border-top:1px solid rgba(224,16,16,.15)}
+  .ident .b,.brand .w2{display:none}
+}
+@media (max-width:520px){
+  .topstrip{padding:9px 14px} .embed-nav,.brand{display:none}
+  .stitle{letter-spacing:.22em} .screen{padding:12px 14px 9px} .grid{column-gap:16px}
+}

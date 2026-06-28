@@ -1,0 +1,47 @@
+/* ============================================================================
+   THEME-TEMPLATE - Kopiervorlage fuer neue Hersteller (crusader, aegis, ...)
+
+   NEUEN HERSTELLER ANLEGEN (3 Handgriffe, Skelett wird NIE angefasst):
+     1. Diese Datei nach  themes/<name>.css  kopieren und Look ausfuellen.
+     2. index.html  ->  Head-Script:   ok=['drake','<name>']   ergaenzen.
+     3. index.html  ->  THEME_META:     <name>:{ident,division,brand,sub,scode,codes,log}
+   Aufruf danach:  index.html?theme=<name>&topic=ggsc/XXXXXXXXXXXXXXXX
+
+   WICHTIG: Das DOM ist fuer alle Hersteller identisch - du stylst nur um.
+   Deko, die ein Hersteller NICHT will, einfach  display:none  setzen
+   (z.B. .vent, .hazard, .mount, .key). Fehlende Slots NICHT aus dem HTML loeschen.
+
+   FARB-KONVENTION (fuer Konsistenz ueber alle Themes empfohlen):
+     amber = normal/aktiv   |   red = kritisch/gesperrt/scharf   |   dim = aus
+   Pflicht: .st.amber / .st.red / .st.dim muessen klar unterscheidbar sein,
+            und .led.on (kritisch) sichtbar.
+   ----------------------------------------------------------------------------
+   SLOT-UEBERSICHT (gleiche Klassen wie drake.css):
+     body                         Hintergrund / Grundfont / Textfarbe
+     .console                     Chassis / Aussenhuelle
+     .mount .tl/.tr/.bl/.br       Eckwinkel            (optional)
+     .tx / .tx.pol                Schrauben            (optional)
+     .strip                       eingelassene Streifen oben/unten
+     .hazard .top/.bot            Warnstreifen         (optional)
+     .topstrip                    Kopfleiste (grid)
+     .ident .a / .ident .b        Ident-Schild         (Text aus THEME_META)
+     .embed-nav / .embed-btn      Kopf-Buttons
+     .vent                        Lueftungsgitter      (optional)
+     .brand .w1 / .brand .w2      Hersteller-Branding  (Text aus THEME_META)
+     .core                        MFD-Rahmen
+     .keys / .key / .key.lit      seitliche Soft-Keys  (optional)
+     .module / .screen            Bezel + Bildschirm
+     .scode                       kleiner Screen-Code  (Text aus THEME_META)
+     .grid / .col / .col.r        Spalten-Layout der Statusliste
+     .ghead                       Gruppen-Ueberschrift (SHIP/FLIGHT, ACCESS, SYSTEMS)
+     .rows / .row / .lhs          Statuszeilen
+     .led / .led.on               Status-LED (an = kritisch)
+     .lbl                         System-Kuerzel (PWR, ENG, ...)
+     .st .amber/.red/.dim         Statuscode  (PFLICHT: 3 Zustaende)
+     .statusbar / .nav / .stitle  Status-Leiste + Pfeile
+     .cstat / .cled .live/.off    Verbindungsanzeige (STANDBY/LINK/LIVE/OFFLINE)
+     .botstrip                    Fussleiste (grid)
+     .servicelog .id/b/.r         Service-Log (Text/HTML aus THEME_META)
+     .codes                       kleine Code-Spalte (Text aus THEME_META)
+     .bright / .pages / .pg .on   Verbindungs-/Seiten-Block rechts unten
+   ============================================================================ */
